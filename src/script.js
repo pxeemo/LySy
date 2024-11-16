@@ -17,6 +17,7 @@ function sourceFile() {
         const fileChooser = document.getElementById("fileChooser");
         fileChooser.classList.add("hidden");
         player.classList.remove("hidden");
+        player.classList.add("flex");
     }
 }
 
