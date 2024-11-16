@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lyrics tool</title>
+        <link rel="stylesheet" href="./output.css">
+        <link rel="stylesheet" href="./slider.css">
+    </head>
+    <body class="bg-zinc-900 text-zinc-200 pb-14">
+
+        <audio id="audio"></audio>
+        <div class="w-screen h-10 bg-zinc-800 fixed bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
+            <div class="hidden flex gap-4 items-center" id="player">
+                <button class="text-mono" id="backwardBtn"><<</button>
+                <button class="text-mono" id="playPauseBtn">|></button>
+                <button class="text-mono" id="forwardBtn">>></button>
+
+                <select name="playbackSpeed" id="playbackSpeed">
+                    <option value="0.5">x0.5</option>
+                    <option value="0.75">x0.75</option>
+                    <option value="1" selected>x1</option>
+                    <option value="1.25">x1.25</option>
+                    <option value="1.5">x1.5</option>
+                </select>
+
+                <div class="flex items-center gap-2">
+                    <span id="currentTime">0:00</span>
+                    <input class="w-44" type="range" id="seekBar" value="0">
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+            <div id="fileChooser">
+                <input type="file" name="fileInput" id="file" value="audio/*">
+            </div>
+        </div>
+
+        <div class="container mx-auto h-screen px-1 py-2 text-center">
+            <textarea 
+                class="w-full p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+                id="lyricInput" 
+                rows="20"
+                placeholder="Enter your lyric text here" 
+                required></textarea>
+            <button class="bg-orange-400 text-black rounded-md px-5 py-1 m-2" id="plainInputParser">Load</button>
+        </div>
+
+        <div class="container mx-auto px-1 py-2 text-center hidden" id="syncer">
+            <ul class="w-full text-start" id="lyricList"></ul>
+
+            <button class="bg-orange-400 text-black rounded-md px-5 py-1 my-2"  id="dlFile">Save</button>
+        </div>
+
+        <script src="./script.js"></script>
+    </body>
+</html>
