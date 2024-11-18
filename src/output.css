@@ -634,6 +634,38 @@ video {
   height: 100vh;
 }
 
+.h-full {
+  height: 100%;
+}
+
+.h-\[calc\(100\%-20rem\)\] {
+  height: calc(100% - 20rem);
+}
+
+.h-\[calc\(100\%-40px\)\] {
+  height: calc(100% - 40px);
+}
+
+.h-\[calc\(100vh-2\.5rem\)\] {
+  height: calc(100vh - 2.5rem);
+}
+
+.h-12 {
+  height: 3rem;
+}
+
+.h-8 {
+  height: 2rem;
+}
+
+.h-\[calc\(100\%-2\.5rem\)\] {
+  height: calc(100% - 2.5rem);
+}
+
+.h-\[calc\(100vh-3rem\)\] {
+  height: calc(100vh - 3rem);
+}
+
 .w-44 {
   width: 11rem;
 }
