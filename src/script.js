@@ -164,7 +164,7 @@ function nextItem() {
 
 // Add keyboard event listener for spacebar
 window.addEventListener('keydown', e => {
-    if (e.code === 'Space') {
+    if (e.code === 'Space' && document.activeElement != lyricInput) {
         e.preventDefault();
         if (fileInput.files.length == 0) {
             fileInput.click()
