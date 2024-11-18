@@ -10,7 +10,7 @@
     <body class="bg-zinc-900 text-zinc-200 pb-14">
 
         <audio id="audio"></audio>
-        <div class="w-screen h-10 bg-zinc-800 fixed bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
+        <div class="fixed z-20 w-screen h-10 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
             <div class="hidden gap-4 items-center" id="player">
                 <button class="text-mono" id="backwardBtn"><<</button>
                 <button class="text-mono" id="playPauseBtn">|></button>
@@ -50,6 +50,10 @@
 
             <button class="bg-orange-400 text-black rounded-md px-5 py-1 my-2"  id="dlFile">Save</button>
         </div>
+
+        <button 
+            class="fixed z-10 bottom-0 right-4 bg-orange-400 text-black rounded-md px-2 py-1 transition-all" 
+            id="nextItemBtn">Next</button>
 
         <script src="./script.js"></script>
     </body>
