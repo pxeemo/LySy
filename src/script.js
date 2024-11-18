@@ -82,6 +82,7 @@ playPauseBtn.addEventListener('click', togglePlayPause);
 const lyricInput = document.getElementById("lyricInput")
 const parseBtn = document.getElementById("plainInputParser")
 const lyricList = document.getElementById("lyricList")
+const nextItemBtn = document.getElementById("nextItemBtn")
 
 let itemsList = [];
 let currentIndex = 0;
@@ -143,6 +144,9 @@ parseBtn.addEventListener('click', () => {
     const target = document.getElementById('syncer');
     target.classList.remove("hidden")
     target.scrollIntoView({ behavior: 'smooth', block: "nearest" });
+
+    nextItemBtn.classList.remove('bottom-0')
+    nextItemBtn.classList.add('bottom-14')
 });
 
 function nextItem() {
@@ -173,6 +177,10 @@ window.addEventListener('keydown', e => {
         }
     }
 });
+
+nextItemBtn.addEventListener('click', () => {
+    nextItem()
+})
 
 document.getElementById('playbackSpeed').addEventListener('change', e => {
     audio.playbackRate = e.target.selectedOptions[0].value
