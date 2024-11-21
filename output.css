@@ -684,6 +684,22 @@ video {
   resize: none;
 }
 
+.scroll-mt-2 {
+  scroll-margin-top: 0.5rem;
+}
+
+.scroll-mt-6 {
+  scroll-margin-top: 1.5rem;
+}
+
+.scroll-mt-16 {
+  scroll-margin-top: 4rem;
+}
+
+.scroll-mt-24 {
+  scroll-margin-top: 6rem;
+}
+
 .items-center {
   align-items: center;
 }
