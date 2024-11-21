@@ -12,9 +12,15 @@
         <audio id="audio"></audio>
         <div class="fixed z-20 w-screen h-10 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
             <div class="hidden gap-4 items-center" id="player">
-                <button class="text-mono" id="backwardBtn"><<</button>
-                <button class="text-mono" id="playPauseBtn">|></button>
-                <button class="text-mono" id="forwardBtn">>></button>
+                <button class="text-mono" id="backwardBtn">
+                    <img src="./assets/fast_rewind.svg" alt="song seek backward">
+                </button>
+                <button class="text-mono" id="playPauseBtn">
+                    <img src="./assets/play_arrow.svg">
+                </button>
+                <button class="text-mono" id="forwardBtn">
+                    <img src="./assets/fast_forward.svg" alt="song seek forward">
+                </button>
 
                 <select name="playbackSpeed" class="bg-zinc-800 text-zinc-100" id="playbackSpeed">
                     <option value="0.5">x0.5</option>

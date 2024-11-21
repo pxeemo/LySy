@@ -34,10 +34,10 @@ fileInput.addEventListener('change', sourceFile);
 function togglePlayPause() {
     if (audio.paused) {
         audio.play();
-        playPauseBtn.textContent = '||';
+        playPauseBtn.children[0].src = "./assets/pause.svg";
     } else {
         audio.pause();
-        playPauseBtn.textContent = '|>';
+        playPauseBtn.children[0].src = "./assets/play_arrow.svg";
     }
 }
 
