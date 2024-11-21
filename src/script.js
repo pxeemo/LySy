@@ -131,7 +131,7 @@ parseBtn.addEventListener('click', () => {
         item.classList.add("my-2", "rounded-md", "text-zinc-400",
             "border-2", "border-zinc-700", "duration-500", "ease-out", "transition-color", "scroll-mt-24")
         timestamp.innerText = "--:--.---"
-        timestamp.dataset.time = 0
+        timestamp.dataset.time = null
         timestamp.classList.add("font-mono", "px-1", "mr-1")
         text.innerText = line
         item.appendChild(timestamp)
@@ -143,7 +143,6 @@ parseBtn.addEventListener('click', () => {
 
     const target = document.getElementById('syncer');
     target.classList.remove("hidden")
-
     itemsList[0].scrollIntoView({ behavior: 'smooth', block: "start" });
 
     nextItemBtn.classList.remove('bottom-0')
@@ -190,7 +189,12 @@ document.getElementById('playbackSpeed').addEventListener('change', e => {
 document.getElementById('dlFile').addEventListener('click', () => {
     let text = "";
     itemsList.forEach(e => {
-        text += `[${e.children[0].innerText}]${e.children[1].innerText}\n`
+        const time = e.dataset.time
+        if (time != null) {
+            text += `[${formatTimeMilis(time)}]${e.children[1].innerText}\n`
+        } else {
+            text += `${e.children[1].innerText}\n`
+        }
     })
     if (fileInput.files.length != 0) {
         const inputFileName = fileInput.files[0].name
