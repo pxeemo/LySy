@@ -129,7 +129,7 @@ parseBtn.addEventListener('click', () => {
         const timestamp = document.createElement("span")
         const text = document.createElement("span")
         item.classList.add("my-2", "rounded-md", "text-zinc-400",
-            "border-2", "border-zinc-700", "duration-500", "ease-out", "transition-color")
+            "border-2", "border-zinc-700", "duration-500", "ease-out", "transition-color", "scroll-mt-24")
         timestamp.innerText = "--:--.---"
         timestamp.dataset.time = 0
         timestamp.classList.add("font-mono", "px-1", "mr-1")
@@ -143,7 +143,8 @@ parseBtn.addEventListener('click', () => {
 
     const target = document.getElementById('syncer');
     target.classList.remove("hidden")
-    target.scrollIntoView({ behavior: 'smooth', block: "nearest" });
+
+    itemsList[0].scrollIntoView({ behavior: 'smooth', block: "start" });
 
     nextItemBtn.classList.remove('bottom-0')
     nextItemBtn.classList.add('bottom-14')
@@ -159,7 +160,7 @@ function nextItem() {
         item.addEventListener('click', () => {
             audio.currentTime = item.dataset.time
         })
-        item.scrollIntoView({ behavior: 'smooth', block: "center" });
+        item.scrollIntoView({ behavior: 'smooth', block: "start" });
 
         updateSelection();
         currentIndex += 1;
