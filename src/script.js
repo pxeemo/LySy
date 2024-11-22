@@ -143,6 +143,7 @@ parseBtn.addEventListener('click', () => {
         editIcon.src = "./assets/edit.svg"
         editIcon.width = 20
         editIcon.addEventListener('click', e => {
+            e.stopPropagation()
             const target = e.currentTarget.previousElementSibling
             editItemInput.value = target.innerText
             editItemModal.classList.remove("hidden")
@@ -156,6 +157,7 @@ parseBtn.addEventListener('click', () => {
         timestamp.dataset.time = null
         timestamp.classList.add("font-mono", "p-1", "cursor-pointer")
         timestamp.addEventListener('click', e => {
+            e.stopPropagation()
             const target = e.currentTarget
             target.children[1].innerText = formatTimeMilis(audio.currentTime)
             target.dataset.time = audio.currentTime
