@@ -155,6 +155,7 @@ parseBtn.addEventListener('click', () => {
             editItemModal.classList.remove("hidden")
             editItemModal.classList.add("fixed")
             editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
+            editItemInput.focus()
         })
 
         timestamp.classList.add("w-18", "items-center", "text-center", "text-xs")
