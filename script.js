@@ -23,8 +23,7 @@ function sourceFile() {
 
 // Display audio length when metadata is loaded
 audio.addEventListener('loadedmetadata', function() {
-    const lengthInSeconds = audio.duration;
-    console.log(`Length: ${lengthInSeconds.toFixed(2)} seconds`);
+    // const lengthInSeconds = audio.duration;
 });
 
 sourceFile()
@@ -89,8 +88,8 @@ let currentIndex = 0;
 
 // Function to format seconds into MM:SS.MMM
 function formatTimeMilis(seconds) {
-    const hours = (seconds / 3600).toFixed();
-    const minutes = ((seconds % 3600) / 60).toFixed().toString().padStart(2, "0");
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
     const secs = (seconds % 60).toFixed(3).toString().padStart(6, "0");
 
     return `${hours > 0 ? String(hours).padStart(2, '0') + ':' : ''}${minutes}:${secs}`;
@@ -110,15 +109,17 @@ function downloadTextFile(filename, text) {
 }
 
 // Function to update the timestamped item
-function updateSelection() {
-    itemsList.forEach((item, index) => {
-        if (index === currentIndex) {
-            item.classList.remove("border-zinc-700", "text-zinc-400");
-            item.classList.add("border-orange-400", "bg-orange-900", "text-zinc-100", "cursor-pointer");
-        }
-    });
+function updateSelection(item) {
+    item.classList.remove("border-zinc-700", "text-zinc-400");
+    item.classList.add("border-orange-400", "bg-orange-900", "text-zinc-100", "cursor-pointer");
 }
 
+const editItemModal = document.getElementById("editItemModal")
+const editItemInput = document.getElementById("editItemInput")
+const editItemCancel = document.getElementById("editItemCancel")
+const editItemRemove = document.getElementById("editItemRemove")
+const editItemDone = document.getElementById("editItemDone")
+const editItemIndex = document.getElementById("editItemIndex")
 parseBtn.addEventListener('click', () => {
     const plainLyric = lyricInput.value;
     lyricList.innerHTML = '';
@@ -126,23 +127,54 @@ parseBtn.addEventListener('click', () => {
     currentIndex = 0;
     plainLyric.split("\n").forEach(line => {
         const item = document.createElement("li")
-        const timestamp = document.createElement("span")
-        const text = document.createElement("span")
-        item.classList.add("my-2", "rounded-md", "text-zinc-400",
+        const timestamp = document.createElement("div")
+        const updateTimeIcon = document.createElement("img")
+        const timestampText = document.createElement("span")
+        const text = document.createElement("div")
+        const editIcon = document.createElement("img")
+        item.classList.add("flex", "px-1", "gap-1", "my-2", "rounded-md", "text-zinc-400", "items-center",
             "border-2", "border-zinc-700", "duration-500", "ease-out", "transition-color", "scroll-mt-24")
-        timestamp.innerText = "--:--.---"
+        updateTimeIcon.classList.add("mx-auto")
+        updateTimeIcon.src = "./assets/update.svg"
+        updateTimeIcon.width = 15
+        timestampText.innerText = "--:--.---"
+
+        editIcon.classList.add("mx-2", "cursor-pointer")
+        editIcon.src = "./assets/edit.svg"
+        editIcon.width = 20
+        editIcon.addEventListener('click', e => {
+            const target = e.currentTarget.previousElementSibling
+            editItemInput.value = target.innerText
+            editItemModal.classList.remove("hidden")
+            editItemModal.classList.add("fixed")
+            editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
+        })
+
+        timestamp.classList.add("w-18", "items-center", "text-center", "text-xs")
+        timestamp.appendChild(updateTimeIcon)
+        timestamp.appendChild(timestampText)
         timestamp.dataset.time = null
-        timestamp.classList.add("font-mono", "px-1", "mr-1")
-        text.innerText = line
+        timestamp.classList.add("font-mono", "p-1", "cursor-pointer")
+        timestamp.addEventListener('click', e => {
+            const target = e.currentTarget
+            target.children[1].innerText = formatTimeMilis(audio.currentTime)
+            target.dataset.time = audio.currentTime
+            updateSelection(target.parentNode)
+        })
+
+        text.innerHTML = `<p>${line}</p>`
+        text.classList.add("grow")
+
         item.appendChild(timestamp)
         item.appendChild(text)
+        item.appendChild(editIcon)
 
         lyricList.appendChild(item)
         itemsList.push(item)
     })
 
-    const target = document.getElementById('syncer');
-    target.classList.remove("hidden")
+    const syncer = document.getElementById('syncer');
+    syncer.classList.remove("hidden")
     itemsList[0].scrollIntoView({ behavior: 'smooth', block: "start" });
 
     nextItemBtn.classList.remove('bottom-0')
@@ -152,23 +184,22 @@ parseBtn.addEventListener('click', () => {
 function nextItem() {
     if (currentIndex < itemsList.length) {
         const currentTime = audio.currentTime;
-        console.log(`Current Time: ${currentTime}`)
         const item = itemsList[currentIndex]
-        item.children[0].innerText = formatTimeMilis(currentTime)
-        item.dataset.time = currentTime
+        item.children[0].children[1].innerText = formatTimeMilis(currentTime)
+        item.children[0].dataset.time = currentTime
         item.addEventListener('click', () => {
-            audio.currentTime = item.dataset.time
+            audio.currentTime = item.children[0].dataset.time
         })
         item.scrollIntoView({ behavior: 'smooth', block: "start" });
 
-        updateSelection();
+        updateSelection(item);
         currentIndex += 1;
     }
 }
 
 // Add keyboard event listener for spacebar
 window.addEventListener('keydown', e => {
-    if (e.code === 'Space' && document.activeElement != lyricInput) {
+    if (e.code === 'Space' && !["INPUT", "TEXTAREA"].includes(document.activeElement.nodeName)) {
         e.preventDefault();
         if (fileInput.files.length == 0) {
             fileInput.click()
@@ -186,14 +217,37 @@ document.getElementById('playbackSpeed').addEventListener('change', e => {
     audio.playbackRate = e.target.selectedOptions[0].value
 })
 
+function hideModal() {
+    editItemModal.classList.remove("fixed")
+    editItemModal.classList.add("hidden")
+}
+
+editItemCancel.addEventListener('click', hideModal)
+
+editItemDone.addEventListener('click', () => {
+    const index = editItemIndex.value
+    itemsList[index].children[1].innerText = editItemInput.value
+    hideModal()
+})
+
+editItemRemove.addEventListener('click', () => {
+    const index = editItemIndex.value
+    itemsList[index].classList.add("hidden")
+    itemsList = itemsList.filter(e => e != itemsList[index])
+    if (currentIndex > index) {
+        currentIndex -= 1
+    }
+    hideModal()
+})
+
 document.getElementById('dlFile').addEventListener('click', () => {
     let text = "";
-    itemsList.forEach(e => {
-        const time = e.dataset.time
+    itemsList.forEach(item => {
+        const time = item.dataset.time
         if (time != null) {
-            text += `[${formatTimeMilis(time)}]${e.children[1].innerText}\n`
+            text += `[${formatTimeMilis(time)}]${item.children[1].innerText}\n`
         } else {
-            text += `${e.children[1].innerText}\n`
+            text += `${item.children[1].innerText}\n`
         }
     })
     if (fileInput.files.length != 0) {
