@@ -82,6 +82,7 @@ const lyricInput = document.getElementById("lyricInput")
 const parseBtn = document.getElementById("plainInputParser")
 const lyricList = document.getElementById("lyricList")
 const nextItemBtn = document.getElementById("nextItemBtn")
+const prevItemBtn = document.getElementById("prevItemBtn")
 
 let itemsList = [];
 let currentIndex = 0;
@@ -109,9 +110,14 @@ function downloadTextFile(filename, text) {
 }
 
 // Function to update the timestamped item
-function updateSelection(item) {
-    item.classList.remove("border-zinc-700", "text-zinc-400");
-    item.classList.add("border-orange-400", "bg-orange-900", "text-zinc-100", "cursor-pointer");
+function updateSelection(item, activate = true) {
+    if (activate) {
+        item.classList.remove("border-zinc-700", "text-zinc-400");
+        item.classList.add("border-orange-400", "bg-orange-900", "text-zinc-100", "cursor-pointer");
+    } else {
+        item.classList.remove("border-orange-400", "bg-orange-900", "text-zinc-100", "cursor-pointer");
+        item.classList.add("border-zinc-700", "text-zinc-400");
+    }
 }
 
 const editItemModal = document.getElementById("editItemModal")
@@ -181,7 +187,13 @@ parseBtn.addEventListener('click', () => {
 
     nextItemBtn.classList.remove('bottom-0')
     nextItemBtn.classList.add('bottom-14')
+    prevItemBtn.classList.remove('bottom-0')
+    prevItemBtn.classList.add('bottom-28')
 });
+
+function updateCurrentTime(item) {
+    item.children[0].dataset.time = audio.currentTime
+}
 
 function nextItem() {
     if (currentIndex < itemsList.length) {
@@ -189,9 +201,7 @@ function nextItem() {
         const item = itemsList[currentIndex]
         item.children[0].children[1].innerText = formatTimeMilis(currentTime)
         item.children[0].dataset.time = currentTime
-        item.addEventListener('click', () => {
-            audio.currentTime = item.children[0].dataset.time
-        })
+        item.addEventListener('click', updateCurrentTime(item))
         item.scrollIntoView({ behavior: 'smooth', block: "start" });
 
         updateSelection(item);
@@ -199,21 +209,39 @@ function nextItem() {
     }
 }
 
+function prevItem() {
+    if (currentIndex != 1) {
+        currentIndex -= 1;
+        const item = itemsList[currentIndex]
+        const prevItemElement = itemsList[currentIndex - 1]
+        item.children[0].children[1].innerText = '--:--.---'
+        item.children[0].dataset.time = null
+        item.removeEventListener('click', updateCurrentTime)
+        prevItemElement.scrollIntoView({ behavior: 'smooth', block: "start" });
+
+        updateSelection(item, activate = false);
+        audio.currentTime = prevItemElement.children[0].dataset.time
+    }
+}
+
 // Add keyboard event listener for spacebar
 window.addEventListener('keydown', e => {
     if (e.code === 'Space' && !["INPUT", "TEXTAREA"].includes(document.activeElement.nodeName)) {
-        e.preventDefault();
-        if (fileInput.files.length == 0) {
-            fileInput.click()
+        e.preventDefault()
+        if (e.shiftKey) {
+            prevItem()
         } else {
-            nextItem();
+            if (fileInput.files.length == 0) {
+                fileInput.click()
+            } else {
+                nextItem()
+            }
         }
     }
 });
 
-nextItemBtn.addEventListener('click', () => {
-    nextItem()
-})
+nextItemBtn.addEventListener('click', nextItem)
+prevItemBtn.addEventListener('click', prevItem)
 
 document.getElementById('playbackSpeed').addEventListener('change', e => {
     audio.playbackRate = e.target.selectedOptions[0].value
