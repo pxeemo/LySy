@@ -161,13 +161,13 @@ parseBtn.addEventListener('click', () => {
         timestamp.classList.add("w-18", "items-center", "text-center", "text-xs")
         timestamp.appendChild(updateTimeIcon)
         timestamp.appendChild(timestampText)
-        timestamp.dataset.time = null
+        // timestamp.dataset.time = null
         timestamp.classList.add("font-mono", "p-1", "cursor-pointer")
         timestamp.addEventListener('click', e => {
             e.stopPropagation()
             const target = e.currentTarget
             target.children[1].innerText = formatTimeMilis(audio.currentTime)
-            target.dataset.time = audio.currentTime
+            target, parentNode.dataset.time = audio.currentTime
             updateSelection(target.parentNode)
         })
 
@@ -192,17 +192,17 @@ parseBtn.addEventListener('click', () => {
     prevItemBtn.classList.add('bottom-28')
 });
 
-function updateCurrentTime(item) {
-    item.children[0].dataset.time = audio.currentTime
-}
-
 function nextItem() {
     if (currentIndex < itemsList.length) {
         const currentTime = audio.currentTime;
         const item = itemsList[currentIndex]
         item.children[0].children[1].innerText = formatTimeMilis(currentTime)
-        item.children[0].dataset.time = currentTime
-        item.addEventListener('click', updateCurrentTime(item))
+        item.dataset.time = currentTime
+        item.addEventListener('click', () => {
+            if (item.dataset.time !== undefined) {
+                audio.currentTime = item.dataset.time
+            }
+        })
         item.scrollIntoView({ behavior: 'smooth', block: "start" });
 
         updateSelection(item);
@@ -216,12 +216,12 @@ function prevItem() {
         const item = itemsList[currentIndex]
         const prevItemElement = itemsList[currentIndex - 1]
         item.children[0].children[1].innerText = '--:--.---'
-        item.children[0].dataset.time = null
-        item.removeEventListener('click', updateCurrentTime)
+        delete item.dataset.time
+        // item.removeEventListener('click', seekToTime)
         prevItemElement.scrollIntoView({ behavior: 'smooth', block: "start" });
 
         updateSelection(item, activate = false);
-        audio.currentTime = prevItemElement.children[0].dataset.time
+        audio.currentTime = prevItemElement.dataset.time
     }
 }
 
@@ -275,11 +275,10 @@ document.getElementById('dlFile').addEventListener('click', () => {
     let text = "";
     itemsList.forEach(item => {
         const time = item.dataset.time
-        if (time != null) {
-            text += `[${formatTimeMilis(time)}]${item.children[1].innerText}\n`
-        } else {
-            text += `${item.children[1].innerText}\n`
+        if (time !== undefined) {
+            text += `[${formatTimeMilis(time)}]`
         }
+        text += `${item.children[1].innerText}\n`
     })
     if (fileInput.files.length != 0) {
         const inputFileName = fileInput.files[0].name
