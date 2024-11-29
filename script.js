@@ -9,27 +9,18 @@ function sourceFile() {
     const file = fileInput.files[0];
     if (file) {
         const audioURL = URL.createObjectURL(file);
-        audio.src = audioURL;
-
-        // Update playing status
-        // audio.addEventListener(['play', 'pause', 'ended']);
         const player = document.getElementById("player");
         const fileChooser = document.getElementById("fileChooser");
+        audio.src = audioURL;
         fileChooser.classList.add("hidden");
         player.classList.remove("hidden");
         player.classList.add("flex");
     }
 }
 
-// Display audio length when metadata is loaded
-audio.addEventListener('loadedmetadata', function() {
-    // const lengthInSeconds = audio.duration;
-});
-
 sourceFile()
 fileInput.addEventListener('change', sourceFile);
 
-// Update play/pause button
 function togglePlayPause() {
     if (audio.paused) {
         audio.play();
@@ -42,12 +33,12 @@ function togglePlayPause() {
 
 const backwardBtn = document.getElementById("backwardBtn")
 backwardBtn.addEventListener('click', () => {
-    audio.currentTime -= 1
+    audio.currentTime -= 6
 })
 
 const forwardBtn = document.getElementById("forwardBtn")
 forwardBtn.addEventListener('click', () => {
-    audio.currentTime += 2
+    audio.currentTime += 5
 })
 
 function formatTime(seconds, lrcformat = true) {
@@ -80,7 +71,6 @@ seekBar.addEventListener('input', () => {
 playPauseBtn.addEventListener('click', togglePlayPause);
 
 
-
 const lyricInput = document.getElementById("lyricInput")
 const parseBtn = document.getElementById("plainInputParser")
 const lyricList = document.getElementById("lyricList")
@@ -88,20 +78,7 @@ const nextItemBtn = document.getElementById("nextItemBtn")
 const prevItemBtn = document.getElementById("prevItemBtn")
 
 let itemsList = [];
-let currentIndex = 0;
-
-function downloadTextFile(filename, text) {
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    // Specify the filename for the download
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+let currentIndex = -1;
 
 // Function to update the timestamped item
 function updateSelection(item, activate = true) {
@@ -124,7 +101,7 @@ parseBtn.addEventListener('click', () => {
     const plainLyric = lyricInput.value;
     lyricList.innerHTML = '';
     itemsList = [];
-    currentIndex = 0;
+    currentIndex = -1;
     plainLyric.split("\n").forEach(line => {
         const item = document.createElement("li")
         const timestamp = document.createElement("div")
@@ -187,7 +164,8 @@ parseBtn.addEventListener('click', () => {
 });
 
 function nextItem() {
-    if (currentIndex < itemsList.length) {
+    if (currentIndex < itemsList.length - 1) {
+        currentIndex += 1;
         const currentTime = audio.currentTime;
         const item = itemsList[currentIndex]
         item.children[0].children[1].innerText = formatTime(currentTime)
@@ -198,24 +176,27 @@ function nextItem() {
             }
         })
         item.scrollIntoView({ behavior: 'smooth', block: "start" });
-
         updateSelection(item);
-        currentIndex += 1;
     }
 }
 
 function prevItem() {
-    if (currentIndex != 1) {
-        currentIndex -= 1;
+    if (currentIndex >= 0) {
         const item = itemsList[currentIndex]
-        const prevItemElement = itemsList[currentIndex - 1]
         item.children[0].children[1].innerText = '--:--.---'
         delete item.dataset.time
-        // item.removeEventListener('click', seekToTime)
-        prevItemElement.scrollIntoView({ behavior: 'smooth', block: "start" });
-
+        // TODO: item.removeEventListener('click', seekToTime)
         updateSelection(item, activate = false);
-        audio.currentTime = prevItemElement.dataset.time
+
+        if (currentIndex == 0) {
+            item.scrollIntoView({ behavior: 'smooth', block: "start" });
+            audio.currentTime = 0;
+        } else {
+            const prevItemElement = itemsList[currentIndex - 1];
+            prevItemElement.scrollIntoView({ behavior: 'smooth', block: "start" });
+            audio.currentTime = prevItemElement.dataset.time;
+        }
+        currentIndex -= 1;
     }
 }
 
@@ -265,7 +246,20 @@ editItemRemove.addEventListener('click', () => {
     hideModal()
 })
 
-document.getElementById('dlFile').addEventListener('click', () => {
+function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+const dlFileBtn = document.getElementById('dlFile');
+dlFileBtn.addEventListener('click', () => {
     let text = "";
     itemsList.forEach(item => {
         const time = item.dataset.time
