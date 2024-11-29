@@ -1,29 +1,40 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Lyrics Syncer</title>
-        <link rel="stylesheet" href="./output.css">
-        <link rel="stylesheet" href="./slider.css">
-        <link rel="icon" href="./assets/favicon.svg">
+        <link rel="stylesheet" href="./output.css" />
+        <link rel="stylesheet" href="./slider.css" />
+        <link rel="icon" href="./assets/favicon.svg" />
     </head>
     <body class="bg-zinc-900 text-zinc-200 pb-14">
-
         <audio id="audio"></audio>
-        <div class="fixed z-20 w-screen h-10 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
+        <div
+            class="fixed z-20 w-screen h-10 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]"
+        >
             <div class="hidden gap-4 items-center" id="player">
                 <button class="text-mono" id="backwardBtn">
-                    <img src="./assets/fast_rewind.svg" alt="song seek backward">
+                    <img
+                        src="./assets/fast_rewind.svg"
+                        alt="song seek backward"
+                    />
                 </button>
                 <button class="text-mono" id="playPauseBtn">
-                    <img src="./assets/play_arrow.svg">
+                    <img src="./assets/play_arrow.svg" />
                 </button>
                 <button class="text-mono" id="forwardBtn">
-                    <img src="./assets/fast_forward.svg" alt="song seek forward">
+                    <img
+                        src="./assets/fast_forward.svg"
+                        alt="song seek forward"
+                    />
                 </button>
 
-                <select name="playbackSpeed" class="bg-zinc-800 text-zinc-100" id="playbackSpeed">
+                <select
+                    name="playbackSpeed"
+                    class="bg-zinc-800 text-zinc-100"
+                    id="playbackSpeed"
+                >
                     <option value="0.5">x0.5</option>
                     <option value="0.75">x0.75</option>
                     <option value="1" selected>x1</option>
@@ -33,56 +44,106 @@
 
                 <div class="sm:flex hidden items-center gap-2">
                     <span id="currentTime">0:00</span>
-                    <input class="w-44" type="range" id="seekBar" value="0">
+                    <input class="w-44" type="range" id="seekBar" value="0" />
                     <span id="duration">0:00</span>
                 </div>
             </div>
             <div id="fileChooser">
-                <input type="file" name="fileInput" id="file" value="audio/*">
+                <input type="file" name="fileInput" id="file" value="audio/*" />
             </div>
         </div>
 
-        <div class="container container-md h-[calc(100svh-3rem)] px-1 py-2 text-center">
-            <textarea 
+        <div
+            class="container container-md h-[calc(100svh-3rem)] px-1 py-2 text-center"
+        >
+            <textarea
                 dir="auto"
                 class="w-full h-[calc(100%-2.5rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
-                id="lyricInput" 
+                id="lyricInput"
                 rows="20"
-                placeholder="Enter your lyric text here" 
-                required></textarea>
-            <button class="h-8 bg-orange-400 text-black rounded-md px-5 m-2" id="plainInputParser">Load</button>
+                placeholder="Enter your lyric text here"
+                required
+            ></textarea>
+            <button
+                class="h-8 bg-orange-400 text-black rounded-md px-5 m-2"
+                id="plainInputParser"
+            >
+                Load
+            </button>
         </div>
 
-        <div class="container container-md px-1 py-2 text-center hidden" id="syncer">
+        <div
+            class="container container-md px-1 py-2 text-center hidden"
+            id="syncer"
+        >
             <ul class="w-full text-start" id="lyricList"></ul>
 
-            <button class="h-8 bg-orange-400 text-black rounded-md px-5 my-2"  id="dlFile">Save</button>
+            <button
+                class="h-8 bg-orange-400 text-black rounded-md px-5 my-2"
+                id="dlFile"
+            >
+                Save
+            </button>
         </div>
 
         <!-- Floating action buttons -->
         <button
-            class="fixed z-10 bottom-0 right-4 h-8 bg-zinc-900 
-            border-orange-400 border-2 text-orange-400 rounded-md px-2 transition-all delay-150" 
-            id="prevItemBtn">Back</button>
-        <button 
-            class="fixed z-10 bottom-0 right-4 h-10 bg-orange-400 text-black rounded-md px-4 transition-all" 
-            id="nextItemBtn">Next</button>
+            class="fixed z-10 bottom-0 right-4 h-8 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-md px-2 transition-all delay-150"
+            id="prevItemBtn"
+        >
+            Back
+        </button>
+        <button
+            class="fixed z-10 bottom-0 right-4 h-10 bg-orange-400 text-black rounded-md px-4 transition-all"
+            id="nextItemBtn"
+        >
+            Next
+        </button>
 
         <!-- Edit Item Modal -->
-        <div class="hidden z-50 top-0 left-0 right-0 h-screen w-screen" id="editItemModal">
-            <div class="flex items-center justify-center h-full w-full bg-black">
+        <div
+            class="hidden z-50 top-0 left-0 right-0 h-screen w-screen"
+            id="editItemModal"
+        >
+            <div
+                class="flex items-center justify-center h-full w-full bg-black"
+            >
                 <div class="container container-sm p-4 rounded-lg bg-zinc-900">
-                    <input id="editItemInput" type="text" name="editItemInput" dir="auto"
-                        class="w-full bg-zinc-900 outline-none rounded-md py-1 px-2 border-zinc-700
-                        transition-all ease-in-out duration-300 focus:border-orange-400 border-2">
+                    <input
+                        id="editItemInput"
+                        type="text"
+                        name="editItemInput"
+                        dir="auto"
+                        class="w-full bg-zinc-900 outline-none rounded-md py-1 px-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2"
+                    />
                     <div class="flex mt-2 justify-between">
-                        <button class="px-2 text-orange-400 border-orange-400 border-2 rounded-md" id="editItemCancel">Cancel</button>
+                        <button
+                            class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
+                            id="editItemCancel"
+                        >
+                            Cancel
+                        </button>
                         <div>
-                            <button class="px-2 text-orange-400 border-orange-400 border-2 rounded-md" id="editItemRemove">Remove</button>
-                            <button class="px-2 text-black bg-orange-400 border-orange-400 border-2 rounded-md" id="editItemDone">Done</button>
+                            <button
+                                class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
+                                id="editItemRemove"
+                            >
+                                Remove
+                            </button>
+                            <button
+                                class="px-2 text-black bg-orange-400 border-orange-400 border-2 rounded-md"
+                                id="editItemDone"
+                            >
+                                Done
+                            </button>
                         </div>
                     </div>
-                    <input id="editItemIndex" type="hidden" name="editItemIndex" value="null">
+                    <input
+                        id="editItemIndex"
+                        type="hidden"
+                        name="editItemIndex"
+                        value="null"
+                    />
                 </div>
             </div>
         </div>
