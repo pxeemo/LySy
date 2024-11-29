@@ -1,4 +1,8 @@
 {
+    "scripts": {
+        "format": "prettier --write .",
+        "check-format": "prettier --check ."
+    },
     "dependencies": {
         "tailwindcss": "^3.4.14"
     },
