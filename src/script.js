@@ -110,7 +110,7 @@ parseBtn.addEventListener('click', () => {
         const text = document.createElement("div")
         const editIcon = document.createElement("img")
         item.classList.add("flex", "px-1", "gap-1", "my-2", "rounded-md", "text-zinc-400", "items-center",
-            "border-2", "border-zinc-700", "duration-500", "ease-out", "transition-color", "scroll-mt-24")
+            "border-2", "border-zinc-700", "duration-500", "ease-out", "transition-color", "scroll-mt-[20svh]")
         updateTimeIcon.classList.add("mx-auto")
         updateTimeIcon.src = "./assets/update.svg"
         updateTimeIcon.width = 15

@@ -721,6 +721,10 @@ video {
   scroll-margin-top: 6rem;
 }
 
+.scroll-mt-\[20svh\] {
+  scroll-margin-top: 20svh;
+}
+
 .items-center {
   align-items: center;
 }
