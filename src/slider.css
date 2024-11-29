@@ -1,31 +1,31 @@
 .slider {
-  --c: rgb(251 146 60);
-  --g: 8px;
-  --l: 5px;
-  --s: 15px;
+    --c: rgb(251 146 60);
+    --g: 8px;
+    --l: 5px;
+    --s: 15px;
 
-  width: 200px;
-  height: var(--s); 
-  appearance :none;
-  background: none;
-  cursor: pointer;
-  border-radius: 50px;
-  overflow: hidden;
+    width: 200px;
+    height: var(--s);
+    appearance: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 50px;
+    overflow: hidden;
 }
 
 .slider::-moz-range-thumb,
-.slider::-webkit-range-thumb { 
-  height: var(--s);
-  width: var(--s);
-  border-radius: 50%;
-  background: var(--c);
-  appearance: none;
+.slider::-webkit-range-thumb {
+    height: var(--s);
+    width: var(--s);
+    border-radius: 50%;
+    background: var(--c);
+    appearance: none;
 
-  border-image-source: linear-gradient(90deg, var(--c) 50%, #ababab 0); 
-  border-image-slice: 1;
-  border-image-width: 0 100vw;
-  border-image-outset: 0 calc(100vw + var(--g));
+    border-image-source: linear-gradient(90deg, var(--c) 50%, #ababab 0);
+    border-image-slice: 1;
+    border-image-width: 0 100vw;
+    border-image-outset: 0 calc(100vw + var(--g));
 
-  box-shadow: 0 0 0 var(--l) inset var(--c);
-  transition: .3s;
+    box-shadow: 0 0 0 var(--l) inset var(--c);
+    transition: 0.3s;
 }
