@@ -50,22 +50,25 @@ forwardBtn.addEventListener('click', () => {
     audio.currentTime += 2
 })
 
-// Format time in MM:SS
-function formatTime(time) {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+function formatTime(seconds, lrcformat = true) {
+    const mins = Math.floor(seconds / 60);
+    const secs = (seconds % 60).toFixed(3);
+    if (lrcformat) {
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(6, '0')}`
+    } else {
+        return `${mins}:${Math.floor(secs).toString().padStart(2, '0')}`;
+    }
 }
 
 // Update seek bar as the audio plays
 audio.addEventListener('timeupdate', () => {
     seekBar.value = (audio.currentTime / audio.duration) * 100;
-    currentTimeDisplay.textContent = formatTime(audio.currentTime);
+    currentTimeDisplay.textContent = formatTime(audio.currentTime, false);
 });
 
 // Update duration once metadata is loaded
 audio.addEventListener('loadedmetadata', () => {
-    durationDisplay.textContent = formatTime(audio.duration);
+    durationDisplay.textContent = formatTime(audio.duration, false);
 });
 
 // Seek when seek bar is changed
@@ -86,15 +89,6 @@ const prevItemBtn = document.getElementById("prevItemBtn")
 
 let itemsList = [];
 let currentIndex = 0;
-
-// Function to format seconds into MM:SS.MMM
-function formatTimeMilis(seconds) {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
-    const secs = (seconds % 60).toFixed(3).toString().padStart(6, "0");
-
-    return `${hours > 0 ? String(hours).padStart(2, '0') + ':' : ''}${minutes}:${secs}`;
-};
 
 function downloadTextFile(filename, text) {
     const blob = new Blob([text], { type: 'text/plain' });
@@ -166,7 +160,7 @@ parseBtn.addEventListener('click', () => {
         timestamp.addEventListener('click', e => {
             e.stopPropagation()
             const target = e.currentTarget
-            target.children[1].innerText = formatTimeMilis(audio.currentTime)
+            target.children[1].innerText = formatTime(audio.currentTime)
             target, parentNode.dataset.time = audio.currentTime
             updateSelection(target.parentNode)
         })
@@ -196,7 +190,7 @@ function nextItem() {
     if (currentIndex < itemsList.length) {
         const currentTime = audio.currentTime;
         const item = itemsList[currentIndex]
-        item.children[0].children[1].innerText = formatTimeMilis(currentTime)
+        item.children[0].children[1].innerText = formatTime(currentTime)
         item.dataset.time = currentTime
         item.addEventListener('click', () => {
             if (item.dataset.time !== undefined) {
@@ -276,7 +270,7 @@ document.getElementById('dlFile').addEventListener('click', () => {
     itemsList.forEach(item => {
         const time = item.dataset.time
         if (time !== undefined) {
-            text += `[${formatTimeMilis(time)}]`
+            text += `[${formatTime(time)}]`
         }
         text += `${item.children[1].innerText}\n`
     })
