@@ -192,13 +192,13 @@ parseBtn.addEventListener('click', () => {
 
 function nextItem() {
     if (currentIndex < itemsList.length - 1) {
-        currentIndex += 1
+        currentIndex++
         const currentTime = audio.currentTime
         const item = itemsList[currentIndex]
         item.children[0].children[1].innerText = formatTime(currentTime)
         item.dataset.time = currentTime
         item.addEventListener('click', () => {
-            if (item.dataset.time !== undefined) {
+            if (typeof item.dataset.time != "undefined") {
                 audio.currentTime = item.dataset.time
             }
         })
@@ -226,7 +226,7 @@ function prevItem() {
             })
             audio.currentTime = prevItemElement.dataset.time
         }
-        currentIndex -= 1
+        currentIndex--
     }
 }
 
@@ -273,8 +273,8 @@ editItemRemove.addEventListener('click', () => {
     const index = editItemIndex.value
     itemsList[index].classList.add('hidden')
     itemsList = itemsList.filter((e) => e != itemsList[index])
-    if (currentIndex > index) {
-        currentIndex -= 1
+    if (currentIndex >= index) {
+        currentIndex--
     }
     hideModal()
 })
@@ -296,7 +296,7 @@ dlFileBtn.addEventListener('click', () => {
     let text = ''
     itemsList.forEach((item) => {
         const time = item.dataset.time
-        if (time !== undefined) {
+        if (typeof time != "undefined") {
             text += `[${formatTime(time)}]`
         }
         text += `${item.children[1].innerText}\n`
