@@ -59,20 +59,21 @@
         >
             <textarea
                 dir="auto"
-                class="w-full h-[calc(100%-2.5rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+                class="w-full h-[calc(100%-6rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
                 id="lyricInput"
                 rows="20"
                 placeholder="Enter your lyric text here"
                 required
             ></textarea>
-            <button
-                class="h-8 bg-orange-400 text-black rounded-md px-5 m-2"
-                id="plainInputParser"
-            >
-                Load
-            </button>
 
-            <div class="relative inline-block w-44">
+            <div
+                class="flex w-2/3 p-2 my-2 mx-auto bg-zinc-800 rounded-2xl justify-between items-center"
+            >
+                <label
+                    class="flex-grow inline-flex h-full ps-2 text-lg cursor-pointer"
+                    for="isWordByWord"
+                    >Sync word-by-word</label
+                >
                 <input
                     class="hidden peer"
                     type="checkbox"
@@ -80,14 +81,16 @@
                     name="isWordByWord"
                 />
                 <label
+                    class="relative inline-block w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                     for="isWordByWord"
-                    class="w-14 h-8 flex items-center bg-gray-500 rounded-full p-1 cursor-pointer peer-checked:bg-green-500 transition"
-                >
-                    <div
-                        class="h-6 w-6 bg-white rounded-full shadow-md transform peer-checked:translate-x-6 peer-checked:bg-gray-800 transition"
-                    ></div>
-                </label>
+                ></label>
             </div>
+            <button
+                class="h-8 bg-orange-400 text-black rounded-md px-5 m-1"
+                id="plainInputParser"
+            >
+                Load
+            </button>
         </div>
 
         <div
