@@ -4,6 +4,15 @@ const playPauseBtn = document.getElementById('playPauseBtn')
 const seekBar = document.getElementById('seekBar')
 const currentTimeDisplay = document.getElementById('currentTime')
 const durationDisplay = document.getElementById('duration')
+const wordByWordCheckbox = document.getElementById('isWordByWord')
+let isWordByWord = wordByWordCheckbox.checked
+
+wordByWordCheckbox.addEventListener('change', (e) => {
+    if (itemsList.length != 0) {
+        lineByLineParser()
+    }
+    isWordByWord = e.target.checked
+})
 
 function sourceFile() {
     const file = fileInput.files[0]
@@ -77,7 +86,8 @@ const nextItemBtn = document.getElementById('nextItemBtn')
 const prevItemBtn = document.getElementById('prevItemBtn')
 
 let itemsList = []
-let currentIndex = -1
+let currentItemIndex = -1
+let currentWordIndex = -1
 
 // Function to update the timestamped item
 function updateSelection(item, activate = true) {
@@ -106,11 +116,11 @@ const editItemCancel = document.getElementById('editItemCancel')
 const editItemRemove = document.getElementById('editItemRemove')
 const editItemDone = document.getElementById('editItemDone')
 const editItemIndex = document.getElementById('editItemIndex')
-parseBtn.addEventListener('click', () => {
+function lineByLineParser() {
     const plainLyric = lyricInput.value
     lyricList.innerHTML = ''
     itemsList = []
-    currentIndex = -1
+    currentItemIndex = -1
     plainLyric.split('\n').forEach((line) => {
         const item = document.createElement('li')
         const timestamp = document.createElement('div')
@@ -159,7 +169,6 @@ parseBtn.addEventListener('click', () => {
         )
         timestamp.appendChild(updateTimeIcon)
         timestamp.appendChild(timestampText)
-        // timestamp.dataset.time = null
         timestamp.classList.add('font-mono', 'p-1', 'cursor-pointer')
         timestamp.addEventListener('click', (e) => {
             e.stopPropagation()
@@ -169,7 +178,16 @@ parseBtn.addEventListener('click', () => {
             updateSelection(target.parentNode)
         })
 
-        text.innerHTML = `<p>${line}</p>`
+        if (isWordByWord) {
+            line.split(' ').forEach((word) => {
+                const wordEl = document.createElement('span')
+                wordEl.innerText = word + ' '
+                wordEl.classList.add('text-zinc-400')
+                text.appendChild(wordEl)
+            })
+        } else {
+            text.innerText = line
+        }
         text.classList.add('grow')
 
         item.appendChild(timestamp)
@@ -188,45 +206,87 @@ parseBtn.addEventListener('click', () => {
     nextItemBtn.classList.add('bottom-14')
     prevItemBtn.classList.remove('bottom-0')
     prevItemBtn.classList.add('bottom-28')
-})
+}
+parseBtn.addEventListener('click', lineByLineParser)
 
-function nextItem() {
-    if (currentIndex < itemsList.length - 1) {
-        currentIndex++
-        const currentTime = audio.currentTime
-        const item = itemsList[currentIndex]
-        item.children[0].children[1].innerText = formatTime(currentTime)
-        item.dataset.time = currentTime
-        item.addEventListener('click', () => {
-            if (typeof item.dataset.time != "undefined") {
-                audio.currentTime = item.dataset.time
+function nextItem(item, currentTime) {
+    item.children[0].children[1].innerText = formatTime(currentTime)
+    item.dataset.time = currentTime
+    item.addEventListener('click', () => {
+        if (typeof item.dataset.time != 'undefined') {
+            audio.currentTime = item.dataset.time
+        }
+    })
+    item.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    updateSelection(item)
+}
+
+function next() {
+    const currentTime = audio.currentTime
+    if (isWordByWord) {
+        // First item is not selected yet
+        if (currentItemIndex == -1) {
+            currentItemIndex++
+            currentWordIndex = -1
+            nextItem(itemsList[currentItemIndex], currentTime)
+            return
+        }
+        currentWordIndex++
+        const item = itemsList[currentItemIndex]
+        const line = item.children[1]
+        const word = line.children[currentWordIndex]
+
+        if (currentWordIndex >= item.children[1].children.length) {
+            if (currentItemIndex < itemsList.length - 1) {
+                currentWordIndex = -1
+                currentItemIndex++
+                nextItem(item.nextElementSibling, currentTime)
             }
-        })
-        item.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        updateSelection(item)
+        } else {
+            word.dataset.time = currentTime
+            word.classList.remove('text-zinc-400')
+            word.classList.add('text-zinc-100')
+        }
+    } else {
+        if (currentItemIndex < itemsList.length - 1) {
+            currentItemIndex++
+            const item = itemsList[currentItemIndex]
+            nextItem(item, currentTime)
+        }
     }
 }
 
 function prevItem() {
-    if (currentIndex >= 0) {
-        const item = itemsList[currentIndex]
+    if (currentItemIndex >= 0) {
+        const item = itemsList[currentItemIndex]
         item.children[0].children[1].innerText = '--:--.---'
         delete item.dataset.time
+        if (isWordByWord) {
+            for (let i = 0; i <= currentWordIndex; i++) {
+                const word = item.children[1].children[i]
+                if (word.dataset.time) {
+                    delete word.dataset.time
+                    word.classList.remove('text-zinc-100')
+                    word.classList.add('text-zinc-400')
+                }
+            }
+            currentWordIndex = 999
+        }
         // TODO: item.removeEventListener('click', seekToTime)
         updateSelection(item, (activate = false))
 
-        if (currentIndex == 0) {
+        if (currentItemIndex == 0) {
             item.scrollIntoView({ behavior: 'smooth', block: 'start' })
             audio.currentTime = 0
         } else {
-            const prevItemElement = itemsList[currentIndex - 1]
+            const prevItemElement = itemsList[currentItemIndex - 1]
             prevItemElement.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
             })
             audio.currentTime = prevItemElement.dataset.time
         }
-        currentIndex--
+        currentItemIndex--
     }
 }
 
@@ -243,13 +303,13 @@ window.addEventListener('keydown', (e) => {
             if (fileInput.files.length == 0) {
                 fileInput.click()
             } else {
-                nextItem()
+                next()
             }
         }
     }
 })
 
-nextItemBtn.addEventListener('click', nextItem)
+nextItemBtn.addEventListener('click', next)
 prevItemBtn.addEventListener('click', prevItem)
 
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
@@ -273,8 +333,8 @@ editItemRemove.addEventListener('click', () => {
     const index = editItemIndex.value
     itemsList[index].classList.add('hidden')
     itemsList = itemsList.filter((e) => e != itemsList[index])
-    if (currentIndex >= index) {
-        currentIndex--
+    if (currentItemIndex >= index) {
+        currentItemIndex--
     }
     hideModal()
 })
@@ -296,7 +356,7 @@ dlFileBtn.addEventListener('click', () => {
     let text = ''
     itemsList.forEach((item) => {
         const time = item.dataset.time
-        if (typeof time != "undefined") {
+        if (typeof time != 'undefined') {
             text += `[${formatTime(time)}]`
         }
         text += `${item.children[1].innerText}\n`
