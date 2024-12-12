@@ -112,8 +112,12 @@ function updateSelection(item, activate = true) {
 
 function splitLineIntoWords(line, lineEl) {
     line.split(' ').forEach((word) => {
-        word.split(/([,،、]|.+?-)|<>/).forEach((part) => {
+        word.split(/([,،、]|-)|<>/).forEach((part) => {
             if (typeof part != 'undefined' && part != '') {
+                if (part == '-') {
+                    lineEl.lastChild.innerText += '-'
+                    return
+                }
                 const partEl = document.createElement('span')
                 partEl.innerText = part
                 partEl.classList.add('text-zinc-400')
