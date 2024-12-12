@@ -8,10 +8,10 @@ const wordByWordCheckbox = document.getElementById('isWordByWord')
 let isWordByWord = wordByWordCheckbox.checked
 
 wordByWordCheckbox.addEventListener('change', (e) => {
+    isWordByWord = e.target.checked
     if (itemsList.length != 0) {
         lineByLineParser()
     }
-    isWordByWord = e.target.checked
 })
 
 function sourceFile() {
@@ -33,10 +33,10 @@ fileInput.addEventListener('change', sourceFile)
 function togglePlayPause() {
     if (audio.paused) {
         audio.play()
-        playPauseBtn.children[0].src = './assets/pause.svg'
+        playPauseBtn.firstChild.src = './assets/pause.svg'
     } else {
         audio.pause()
-        playPauseBtn.children[0].src = './assets/play_arrow.svg'
+        playPauseBtn.firstChild.src = './assets/play_arrow.svg'
     }
 }
 
@@ -180,10 +180,17 @@ function lineByLineParser() {
 
         if (isWordByWord) {
             line.split(' ').forEach((word) => {
-                const wordEl = document.createElement('span')
-                wordEl.innerText = word + ' '
-                wordEl.classList.add('text-zinc-400')
-                text.appendChild(wordEl)
+                word.split(/([,،、]|.+?-)|<>/).forEach((part) => {
+                    if (typeof part != 'undefined' && part != '') {
+                        const partEl = document.createElement('span')
+                        partEl.innerText = part
+                        partEl.classList.add('text-zinc-400')
+                        partEl.dataset.type = 'part'
+                        text.appendChild(partEl)
+                    }
+                })
+                text.lastChild.dataset.type = 'word'
+                text.lastChild.classList.add('pe-1')
             })
         } else {
             text.innerText = line
@@ -210,7 +217,7 @@ function lineByLineParser() {
 parseBtn.addEventListener('click', lineByLineParser)
 
 function nextItem(item, currentTime) {
-    item.children[0].children[1].innerText = formatTime(currentTime)
+    item.firstChild.children[1].innerText = formatTime(currentTime)
     item.dataset.time = currentTime
     item.addEventListener('click', () => {
         if (typeof item.dataset.time != 'undefined') {
@@ -236,7 +243,7 @@ function next() {
         const line = item.children[1]
         const word = line.children[currentWordIndex]
 
-        if (currentWordIndex >= item.children[1].children.length) {
+        if (currentWordIndex >= item.children[1].childElementCount) {
             if (currentItemIndex < itemsList.length - 1) {
                 currentWordIndex = -1
                 currentItemIndex++
@@ -259,7 +266,7 @@ function next() {
 function prevItem() {
     if (currentItemIndex >= 0) {
         const item = itemsList[currentItemIndex]
-        item.children[0].children[1].innerText = '--:--.---'
+        item.firstChild.lastChild.innerText = '--:--.---'
         delete item.dataset.time
         if (isWordByWord) {
             for (let i = 0; i <= currentWordIndex; i++) {
@@ -364,7 +371,10 @@ dlFileBtn.addEventListener('click', () => {
         if (isWordByWord) {
             text += `<${formatTime(time)}>`
             item.children[1].childNodes.forEach((word) => {
-                text += `${word.innerText}<${formatTime(word.dataset.time)}>`
+                text +=
+                    word.innerText +
+                    `${word.dataset.type == 'word' ? ' ' : ''}` +
+                    `<${formatTime(word.dataset.time)}>`
             })
             text += '\n'
         } else {
