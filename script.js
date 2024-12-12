@@ -302,6 +302,8 @@ window.addEventListener('keydown', (e) => {
         } else {
             if (fileInput.files.length == 0) {
                 fileInput.click()
+            } else if (itemsList.length == 0) {
+                lineByLineParser()
             } else {
                 next()
             }
@@ -359,7 +361,15 @@ dlFileBtn.addEventListener('click', () => {
         if (typeof time != 'undefined') {
             text += `[${formatTime(time)}]`
         }
-        text += `${item.children[1].innerText}\n`
+        if (isWordByWord) {
+            text += `<${formatTime(time)}>`
+            item.children[1].childNodes.forEach((word) => {
+                text += `${word.innerText}<${formatTime(word.dataset.time)}>`
+            })
+            text += '\n'
+        } else {
+            text += `${item.children[1].innerText}\n`
+        }
     })
     if (fileInput.files.length != 0) {
         const inputFileName = fileInput.files[0].name
