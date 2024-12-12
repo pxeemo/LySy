@@ -194,6 +194,7 @@ function plainLyricParser() {
         })
 
         if (isWordByWord) {
+            if (line.trim() == '') return
             splitLineIntoWords(line, lineEl)
         } else {
             lineEl.innerText = line
