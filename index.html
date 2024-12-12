@@ -71,8 +71,23 @@
             >
                 Load
             </button>
-            <input type="checkbox" id="isWordByWord" name="isWordByWord" />
-            <label for="isWordByWord">Sync word by word</label>
+
+            <div class="relative inline-block w-44">
+                <input
+                    class="hidden peer"
+                    type="checkbox"
+                    id="isWordByWord"
+                    name="isWordByWord"
+                />
+                <label
+                    for="isWordByWord"
+                    class="w-14 h-8 flex items-center bg-gray-500 rounded-full p-1 cursor-pointer peer-checked:bg-green-500 transition"
+                >
+                    <div
+                        class="h-6 w-6 bg-white rounded-full shadow-md transform peer-checked:translate-x-6 peer-checked:bg-gray-800 transition"
+                    ></div>
+                </label>
+            </div>
         </div>
 
         <div
@@ -104,52 +119,48 @@
         </button>
 
         <!-- Edit Item Modal -->
-        <div
-            class="hidden z-50 top-0 left-0 right-0 h-screen w-screen"
+        <dialog
+            class="backdrop:bg-gray-950 backdrop:opacity-85 container container-sm p-4 rounded-lg bg-zinc-900"
             id="editItemModal"
         >
-            <div
-                class="flex items-center justify-center h-full w-full bg-black"
-            >
-                <div class="container container-sm p-4 rounded-lg bg-zinc-900">
-                    <input
-                        id="editItemInput"
-                        type="text"
-                        name="editItemInput"
-                        dir="auto"
-                        class="w-full bg-zinc-900 outline-none rounded-md py-1 px-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2"
-                    />
-                    <div class="flex mt-2 justify-between">
+            <form method="dialog" class="">
+                <input
+                    id="editItemInput"
+                    type="text"
+                    name="editItemInput"
+                    dir="auto"
+                    class="w-full bg-zinc-900 text-zinc-100 outline-none rounded-md py-1 px-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2"
+                />
+                <div class="flex mt-2 justify-between">
+                    <button
+                        class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
+                        id="editItemCancel"
+                    >
+                        Cancel
+                    </button>
+                    <div>
                         <button
                             class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
-                            id="editItemCancel"
+                            id="editItemRemove"
                         >
-                            Cancel
+                            Remove
                         </button>
-                        <div>
-                            <button
-                                class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
-                                id="editItemRemove"
-                            >
-                                Remove
-                            </button>
-                            <button
-                                class="px-2 text-black bg-orange-400 border-orange-400 border-2 rounded-md"
-                                id="editItemDone"
-                            >
-                                Done
-                            </button>
-                        </div>
+                        <button
+                            class="px-2 text-black bg-orange-400 border-orange-400 border-2 rounded-md"
+                            id="editItemDone"
+                        >
+                            Done
+                        </button>
                     </div>
-                    <input
-                        id="editItemIndex"
-                        type="hidden"
-                        name="editItemIndex"
-                        value="null"
-                    />
                 </div>
-            </div>
-        </div>
+                <input
+                    id="editItemIndex"
+                    type="hidden"
+                    name="editItemIndex"
+                    value="null"
+                />
+            </form>
+        </dialog>
         <script src="./script.js"></script>
     </body>
 </html>

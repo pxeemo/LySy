@@ -171,8 +171,7 @@ function plainLyricParser() {
             e.stopPropagation()
             const target = e.currentTarget.previousElementSibling
             editItemInput.value = target.innerText
-            editItemModal.classList.remove('hidden')
-            editItemModal.classList.add('fixed')
+            editItemModal.showModal()
             editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
             editItemInput.focus()
         })
@@ -329,13 +328,6 @@ document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
 })
 
-function hideModal() {
-    editItemModal.classList.remove('fixed')
-    editItemModal.classList.add('hidden')
-}
-
-editItemCancel.addEventListener('click', hideModal)
-
 editItemDone.addEventListener('click', () => {
     const index = editItemIndex.value
     if (isWordByWord) {
@@ -345,7 +337,6 @@ editItemDone.addEventListener('click', () => {
     } else {
         itemsList[index].children[1].innerText = editItemInput.value
     }
-    hideModal()
 })
 
 editItemRemove.addEventListener('click', () => {
@@ -358,7 +349,6 @@ editItemRemove.addEventListener('click', () => {
             currentWordIndex = 99
         }
     }
-    hideModal()
 })
 
 function downloadTextFile(filename, text) {
