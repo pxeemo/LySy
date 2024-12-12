@@ -10,7 +10,7 @@ let isWordByWord = wordByWordCheckbox.checked
 wordByWordCheckbox.addEventListener('change', (e) => {
     isWordByWord = e.target.checked
     if (itemsList.length != 0) {
-        lineByLineParser()
+        plainLyricParser()
     }
 })
 
@@ -110,13 +110,29 @@ function updateSelection(item, activate = true) {
     }
 }
 
+function splitLineIntoWords(line, lineEl) {
+    line.split(' ').forEach((word) => {
+        word.split(/([,،、]|.+?-)|<>/).forEach((part) => {
+            if (typeof part != 'undefined' && part != '') {
+                const partEl = document.createElement('span')
+                partEl.innerText = part
+                partEl.classList.add('text-zinc-400')
+                partEl.dataset.type = 'part'
+                lineEl.appendChild(partEl)
+            }
+        })
+        lineEl.lastChild.dataset.type = 'word'
+        lineEl.innerHTML += ' '
+    })
+}
+
 const editItemModal = document.getElementById('editItemModal')
 const editItemInput = document.getElementById('editItemInput')
 const editItemCancel = document.getElementById('editItemCancel')
 const editItemRemove = document.getElementById('editItemRemove')
 const editItemDone = document.getElementById('editItemDone')
 const editItemIndex = document.getElementById('editItemIndex')
-function lineByLineParser() {
+function plainLyricParser() {
     const plainLyric = lyricInput.value
     lyricList.innerHTML = ''
     itemsList = []
@@ -126,7 +142,7 @@ function lineByLineParser() {
         const timestamp = document.createElement('div')
         const updateTimeIcon = document.createElement('img')
         const timestampText = document.createElement('span')
-        const text = document.createElement('div')
+        const lineEl = document.createElement('div')
         const editIcon = document.createElement('img')
         item.classList.add(
             'flex',
@@ -179,26 +195,14 @@ function lineByLineParser() {
         })
 
         if (isWordByWord) {
-            line.split(' ').forEach((word) => {
-                word.split(/([,،、]|.+?-)|<>/).forEach((part) => {
-                    if (typeof part != 'undefined' && part != '') {
-                        const partEl = document.createElement('span')
-                        partEl.innerText = part
-                        partEl.classList.add('text-zinc-400')
-                        partEl.dataset.type = 'part'
-                        text.appendChild(partEl)
-                    }
-                })
-                text.lastChild.dataset.type = 'word'
-                text.lastChild.classList.add('pe-1')
-            })
+            splitLineIntoWords(line, lineEl)
         } else {
-            text.innerText = line
+            lineEl.innerText = line
         }
-        text.classList.add('grow')
+        lineEl.classList.add('grow')
 
         item.appendChild(timestamp)
-        item.appendChild(text)
+        item.appendChild(lineEl)
         item.appendChild(editIcon)
 
         lyricList.appendChild(item)
@@ -214,7 +218,7 @@ function lineByLineParser() {
     prevItemBtn.classList.remove('bottom-0')
     prevItemBtn.classList.add('bottom-28')
 }
-parseBtn.addEventListener('click', lineByLineParser)
+parseBtn.addEventListener('click', plainLyricParser)
 
 function nextItem(item, currentTime) {
     item.firstChild.children[1].innerText = formatTime(currentTime)
@@ -247,7 +251,7 @@ function next() {
             if (currentItemIndex < itemsList.length - 1) {
                 currentWordIndex = -1
                 currentItemIndex++
-                nextItem(item.nextElementSibling, currentTime)
+                nextItem(itemsList[currentItemIndex], currentTime)
             }
         } else {
             word.dataset.time = currentTime
@@ -271,13 +275,13 @@ function prevItem() {
         if (isWordByWord) {
             for (let i = 0; i <= currentWordIndex; i++) {
                 const word = item.children[1].children[i]
-                if (word.dataset.time) {
+                if (typeof word != 'undefined' && word.dataset.time) {
                     delete word.dataset.time
                     word.classList.remove('text-zinc-100')
                     word.classList.add('text-zinc-400')
                 }
             }
-            currentWordIndex = 999
+            currentWordIndex = 99
         }
         // TODO: item.removeEventListener('click', seekToTime)
         updateSelection(item, (activate = false))
@@ -310,7 +314,7 @@ window.addEventListener('keydown', (e) => {
             if (fileInput.files.length == 0) {
                 fileInput.click()
             } else if (itemsList.length == 0) {
-                lineByLineParser()
+                plainLyricParser()
             } else {
                 next()
             }
@@ -334,16 +338,25 @@ editItemCancel.addEventListener('click', hideModal)
 
 editItemDone.addEventListener('click', () => {
     const index = editItemIndex.value
-    itemsList[index].children[1].innerText = editItemInput.value
+    if (isWordByWord) {
+        itemsList[index].children[1].innerHTML = ''
+        splitLineIntoWords(editItemInput.value, itemsList[index].children[1])
+        currentWordIndex = -1
+    } else {
+        itemsList[index].children[1].innerText = editItemInput.value
+    }
     hideModal()
 })
 
 editItemRemove.addEventListener('click', () => {
     const index = editItemIndex.value
     itemsList[index].classList.add('hidden')
-    itemsList = itemsList.filter((e) => e != itemsList[index])
+    itemsList.splice(index, 1)
     if (currentItemIndex >= index) {
         currentItemIndex--
+        if (currentItemIndex == index - 1) {
+            currentWordIndex = 99
+        }
     }
     hideModal()
 })
@@ -370,7 +383,7 @@ dlFileBtn.addEventListener('click', () => {
         }
         if (isWordByWord) {
             text += `<${formatTime(time)}>`
-            item.children[1].childNodes.forEach((word) => {
+            Array.from(item.children[1].children).forEach((word) => {
                 text +=
                     word.innerText +
                     `${word.dataset.type == 'word' ? ' ' : ''}` +
