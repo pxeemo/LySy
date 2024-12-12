@@ -4,6 +4,15 @@ const playPauseBtn = document.getElementById('playPauseBtn')
 const seekBar = document.getElementById('seekBar')
 const currentTimeDisplay = document.getElementById('currentTime')
 const durationDisplay = document.getElementById('duration')
+const wordByWordCheckbox = document.getElementById('isWordByWord')
+let isWordByWord = wordByWordCheckbox.checked
+
+wordByWordCheckbox.addEventListener('change', (e) => {
+    isWordByWord = e.target.checked
+    if (itemsList.length != 0) {
+        plainLyricParser()
+    }
+})
 
 function sourceFile() {
     const file = fileInput.files[0]
@@ -24,10 +33,10 @@ fileInput.addEventListener('change', sourceFile)
 function togglePlayPause() {
     if (audio.paused) {
         audio.play()
-        playPauseBtn.children[0].src = './assets/pause.svg'
+        playPauseBtn.firstChild.src = './assets/pause.svg'
     } else {
         audio.pause()
-        playPauseBtn.children[0].src = './assets/play_arrow.svg'
+        playPauseBtn.firstChild.src = './assets/play_arrow.svg'
     }
 }
 
@@ -77,7 +86,8 @@ const nextItemBtn = document.getElementById('nextItemBtn')
 const prevItemBtn = document.getElementById('prevItemBtn')
 
 let itemsList = []
-let currentIndex = -1
+let currentItemIndex = -1
+let currentWordIndex = -1
 
 // Function to update the timestamped item
 function updateSelection(item, activate = true) {
@@ -100,23 +110,39 @@ function updateSelection(item, activate = true) {
     }
 }
 
+function splitLineIntoWords(line, lineEl) {
+    line.split(' ').forEach((word) => {
+        word.split(/([,،、]|.+?-)|<>/).forEach((part) => {
+            if (typeof part != 'undefined' && part != '') {
+                const partEl = document.createElement('span')
+                partEl.innerText = part
+                partEl.classList.add('text-zinc-400')
+                partEl.dataset.type = 'part'
+                lineEl.appendChild(partEl)
+            }
+        })
+        lineEl.lastChild.dataset.type = 'word'
+        lineEl.innerHTML += ' '
+    })
+}
+
 const editItemModal = document.getElementById('editItemModal')
 const editItemInput = document.getElementById('editItemInput')
 const editItemCancel = document.getElementById('editItemCancel')
 const editItemRemove = document.getElementById('editItemRemove')
 const editItemDone = document.getElementById('editItemDone')
 const editItemIndex = document.getElementById('editItemIndex')
-parseBtn.addEventListener('click', () => {
+function plainLyricParser() {
     const plainLyric = lyricInput.value
     lyricList.innerHTML = ''
     itemsList = []
-    currentIndex = -1
+    currentItemIndex = -1
     plainLyric.split('\n').forEach((line) => {
         const item = document.createElement('li')
         const timestamp = document.createElement('div')
         const updateTimeIcon = document.createElement('img')
         const timestampText = document.createElement('span')
-        const text = document.createElement('div')
+        const lineEl = document.createElement('div')
         const editIcon = document.createElement('img')
         item.classList.add(
             'flex',
@@ -145,8 +171,7 @@ parseBtn.addEventListener('click', () => {
             e.stopPropagation()
             const target = e.currentTarget.previousElementSibling
             editItemInput.value = target.innerText
-            editItemModal.classList.remove('hidden')
-            editItemModal.classList.add('fixed')
+            editItemModal.showModal()
             editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
             editItemInput.focus()
         })
@@ -159,7 +184,6 @@ parseBtn.addEventListener('click', () => {
         )
         timestamp.appendChild(updateTimeIcon)
         timestamp.appendChild(timestampText)
-        // timestamp.dataset.time = null
         timestamp.classList.add('font-mono', 'p-1', 'cursor-pointer')
         timestamp.addEventListener('click', (e) => {
             e.stopPropagation()
@@ -169,11 +193,16 @@ parseBtn.addEventListener('click', () => {
             updateSelection(target.parentNode)
         })
 
-        text.innerHTML = `<p>${line}</p>`
-        text.classList.add('grow')
+        if (isWordByWord) {
+            if (line.trim() == '') return
+            splitLineIntoWords(line, lineEl)
+        } else {
+            lineEl.innerText = line
+        }
+        lineEl.classList.add('grow')
 
         item.appendChild(timestamp)
-        item.appendChild(text)
+        item.appendChild(lineEl)
         item.appendChild(editIcon)
 
         lyricList.appendChild(item)
@@ -188,45 +217,87 @@ parseBtn.addEventListener('click', () => {
     nextItemBtn.classList.add('bottom-14')
     prevItemBtn.classList.remove('bottom-0')
     prevItemBtn.classList.add('bottom-28')
-})
+}
+parseBtn.addEventListener('click', plainLyricParser)
 
-function nextItem() {
-    if (currentIndex < itemsList.length - 1) {
-        currentIndex++
-        const currentTime = audio.currentTime
-        const item = itemsList[currentIndex]
-        item.children[0].children[1].innerText = formatTime(currentTime)
-        item.dataset.time = currentTime
-        item.addEventListener('click', () => {
-            if (typeof item.dataset.time != "undefined") {
-                audio.currentTime = item.dataset.time
+function nextItem(item, currentTime) {
+    item.firstChild.children[1].innerText = formatTime(currentTime)
+    item.dataset.time = currentTime
+    item.addEventListener('click', () => {
+        if (typeof item.dataset.time != 'undefined') {
+            audio.currentTime = item.dataset.time
+        }
+    })
+    item.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    updateSelection(item)
+}
+
+function next() {
+    const currentTime = audio.currentTime
+    if (isWordByWord) {
+        // First item is not selected yet
+        if (currentItemIndex == -1) {
+            currentItemIndex++
+            currentWordIndex = -1
+            nextItem(itemsList[currentItemIndex], currentTime)
+            return
+        }
+        currentWordIndex++
+        const item = itemsList[currentItemIndex]
+        const line = item.children[1]
+        const word = line.children[currentWordIndex]
+
+        if (currentWordIndex >= item.children[1].childElementCount) {
+            if (currentItemIndex < itemsList.length - 1) {
+                currentWordIndex = -1
+                currentItemIndex++
+                nextItem(itemsList[currentItemIndex], currentTime)
             }
-        })
-        item.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        updateSelection(item)
+        } else {
+            word.dataset.time = currentTime
+            word.classList.remove('text-zinc-400')
+            word.classList.add('text-zinc-100')
+        }
+    } else {
+        if (currentItemIndex < itemsList.length - 1) {
+            currentItemIndex++
+            const item = itemsList[currentItemIndex]
+            nextItem(item, currentTime)
+        }
     }
 }
 
 function prevItem() {
-    if (currentIndex >= 0) {
-        const item = itemsList[currentIndex]
-        item.children[0].children[1].innerText = '--:--.---'
+    if (currentItemIndex >= 0) {
+        const item = itemsList[currentItemIndex]
+        item.firstChild.lastChild.innerText = '--:--.---'
         delete item.dataset.time
+        if (isWordByWord) {
+            for (let i = 0; i <= currentWordIndex; i++) {
+                const word = item.children[1].children[i]
+                if (typeof word != 'undefined' && word.dataset.time) {
+                    delete word.dataset.time
+                    word.classList.remove('text-zinc-100')
+                    word.classList.add('text-zinc-400')
+                }
+            }
+            currentWordIndex = 99
+        }
         // TODO: item.removeEventListener('click', seekToTime)
         updateSelection(item, (activate = false))
 
-        if (currentIndex == 0) {
+        if (currentItemIndex == 0) {
             item.scrollIntoView({ behavior: 'smooth', block: 'start' })
             audio.currentTime = 0
         } else {
-            const prevItemElement = itemsList[currentIndex - 1]
+            const prevItemElement = itemsList[currentItemIndex - 1]
             prevItemElement.scrollIntoView({
                 behavior: 'smooth',
                 block: 'start',
             })
             audio.currentTime = prevItemElement.dataset.time
         }
-        currentIndex--
+        currentItemIndex--
     }
 }
 
@@ -242,41 +313,43 @@ window.addEventListener('keydown', (e) => {
         } else {
             if (fileInput.files.length == 0) {
                 fileInput.click()
+            } else if (itemsList.length == 0) {
+                plainLyricParser()
             } else {
-                nextItem()
+                next()
             }
         }
     }
 })
 
-nextItemBtn.addEventListener('click', nextItem)
+nextItemBtn.addEventListener('click', next)
 prevItemBtn.addEventListener('click', prevItem)
 
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
 })
 
-function hideModal() {
-    editItemModal.classList.remove('fixed')
-    editItemModal.classList.add('hidden')
-}
-
-editItemCancel.addEventListener('click', hideModal)
-
 editItemDone.addEventListener('click', () => {
     const index = editItemIndex.value
-    itemsList[index].children[1].innerText = editItemInput.value
-    hideModal()
+    if (isWordByWord) {
+        itemsList[index].children[1].innerHTML = ''
+        splitLineIntoWords(editItemInput.value, itemsList[index].children[1])
+        currentWordIndex = -1
+    } else {
+        itemsList[index].children[1].innerText = editItemInput.value
+    }
 })
 
 editItemRemove.addEventListener('click', () => {
     const index = editItemIndex.value
     itemsList[index].classList.add('hidden')
-    itemsList = itemsList.filter((e) => e != itemsList[index])
-    if (currentIndex >= index) {
-        currentIndex--
+    itemsList.splice(index, 1)
+    if (currentItemIndex >= index) {
+        currentItemIndex--
+        if (currentItemIndex == index - 1) {
+            currentWordIndex = 99
+        }
     }
-    hideModal()
 })
 
 function downloadTextFile(filename, text) {
@@ -296,10 +369,21 @@ dlFileBtn.addEventListener('click', () => {
     let text = ''
     itemsList.forEach((item) => {
         const time = item.dataset.time
-        if (typeof time != "undefined") {
+        if (typeof time != 'undefined') {
             text += `[${formatTime(time)}]`
         }
-        text += `${item.children[1].innerText}\n`
+        if (isWordByWord) {
+            text += `<${formatTime(time)}>`
+            Array.from(item.children[1].children).forEach((word) => {
+                text +=
+                    word.innerText +
+                    `${word.dataset.type == 'word' ? ' ' : ''}` +
+                    `<${formatTime(word.dataset.time)}>`
+            })
+            text += '\n'
+        } else {
+            text += `${item.children[1].innerText}\n`
+        }
     })
     if (fileInput.files.length != 0) {
         const inputFileName = fileInput.files[0].name
