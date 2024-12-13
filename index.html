@@ -66,14 +66,11 @@
                 required
             ></textarea>
 
-            <div
-                class="flex w-2/3 p-2 my-2 mx-auto bg-zinc-800 rounded-2xl justify-between items-center"
+            <label
+                class="flex w-2/3 p-2 my-2 mx-auto bg-zinc-800 rounded-2xl cursor-pointer justify-between"
+                for="isWordByWord"
             >
-                <label
-                    class="flex-grow inline-flex h-full ps-2 text-lg cursor-pointer"
-                    for="isWordByWord"
-                    >Sync word-by-word</label
-                >
+                <p class="ps-2 text-lg">Sync word-by-word</p>
                 <input
                     class="hidden peer"
                     type="checkbox"
@@ -84,7 +81,7 @@
                     class="relative inline-block w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                     for="isWordByWord"
                 ></label>
-            </div>
+            </label>
             <button
                 class="h-8 bg-orange-400 text-black rounded-md px-5 m-1"
                 id="plainInputParser"
