@@ -83,7 +83,7 @@
                 ></label>
             </label>
             <button
-                class="h-8 bg-orange-400 text-black rounded-md px-5 m-1"
+                class="h-8 bg-orange-400 text-black rounded-full px-5 m-1"
                 id="plainInputParser"
             >
                 Load
@@ -97,7 +97,7 @@
             <ul class="w-full text-start" id="lyricList"></ul>
 
             <button
-                class="h-8 bg-orange-400 text-black rounded-md px-5 my-2"
+                class="h-8 bg-orange-400 text-black rounded-full px-5 my-2"
                 id="dlFile"
             >
                 Save
@@ -106,13 +106,13 @@
 
         <!-- Floating action buttons -->
         <button
-            class="fixed z-10 bottom-0 right-4 h-8 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-md px-2 transition-all delay-150"
+            class="fixed z-10 bottom-0 right-4 h-8 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-full px-2 transition-all delay-50"
             id="prevItemBtn"
         >
             Back
         </button>
         <button
-            class="fixed z-10 bottom-0 right-4 h-10 bg-orange-400 text-black rounded-md px-4 transition-all"
+            class="fixed z-10 bottom-0 right-4 h-10 bg-orange-400 text-black rounded-2xl px-4 transition-all"
             id="nextItemBtn"
         >
             Next
@@ -120,10 +120,10 @@
 
         <!-- Edit Item Modal -->
         <dialog
-            class="backdrop:bg-gray-950 backdrop:opacity-85 container container-sm p-4 rounded-lg bg-zinc-900"
+            class="backdrop:bg-gray-950 backdrop:opacity-85 p-4 rounded-lg bg-zinc-900"
             id="editItemModal"
         >
-            <form method="dialog" class="">
+            <form method="dialog">
                 <input
                     id="editItemInput"
                     type="text"
@@ -133,23 +133,23 @@
                 />
                 <div class="flex mt-2 justify-between">
                     <button
-                        class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
-                        id="editItemCancel"
+                        class="px-2 text-orange-400 rounded-full"
+                        id="editItemRemove"
                     >
-                        Cancel
+                        Remove
                     </button>
                     <div>
                         <button
-                            class="px-2 text-orange-400 border-orange-400 border-2 rounded-md"
-                            id="editItemRemove"
+                            class="px-2 text-orange-400 rounded-full"
+                            id="editItemCancel"
                         >
-                            Remove
+                            Cancel
                         </button>
                         <button
-                            class="px-2 text-black bg-orange-400 border-orange-400 border-2 rounded-md"
+                            class="px-2 text-black bg-orange-400 border-orange-400 border-2 rounded-full"
                             id="editItemDone"
                         >
-                            Done
+                            Save
                         </button>
                     </div>
                 </div>
