@@ -90,17 +90,24 @@ let currentItemIndex = -1
 let currentWordIndex = -1
 
 // Function to update the timestamped item
-function updateSelection(item, activate = true) {
+function updateSelection(item, activate, whiteBorder) {
     if (activate) {
-        item.classList.remove('border-zinc-700', 'text-zinc-400')
+        item.classList.remove(
+            'border-zinc-700',
+            'text-zinc-400',
+            'border-zinc-400',
+        )
         item.classList.add(
-            'border-orange-400',
-            'bg-orange-900',
             'text-zinc-100',
             'cursor-pointer',
+            'border-orange-400',
         )
+        if (!whiteBorder) {
+            item.classList.add('bg-orange-900')
+        }
     } else {
         item.classList.remove(
+            'border-zinc-400',
             'border-orange-400',
             'bg-orange-900',
             'text-zinc-100',
@@ -108,6 +115,14 @@ function updateSelection(item, activate = true) {
         )
         item.classList.add('border-zinc-700', 'text-zinc-400')
     }
+    if (whiteBorder) {
+        item.classList.remove('border-orange-400', 'border-zinc-700')
+        item.classList.add('border-zinc-400')
+    }
+}
+
+function scrollToItem(item) {
+    item.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function splitLineIntoWords(line, lineEl) {
@@ -215,7 +230,10 @@ function plainLyricParser() {
 
     const syncer = document.getElementById('syncer')
     syncer.classList.remove('hidden')
-    itemsList[0].scrollIntoView({ behavior: 'smooth', block: 'start' })
+    scrollToItem(itemsList[0])
+    if (isWordByWord) {
+        updateSelection(itemsList[0], true, true)
+    }
 
     nextItemBtn.classList.remove('bottom-0')
     nextItemBtn.classList.add('bottom-14')
@@ -224,7 +242,7 @@ function plainLyricParser() {
 }
 parseBtn.addEventListener('click', plainLyricParser)
 
-function nextItem(item, currentTime) {
+function timestampItem(item, currentTime) {
     item.firstChild.children[1].innerText = formatTime(currentTime)
     item.dataset.time = currentTime
     item.addEventListener('click', () => {
@@ -232,8 +250,6 @@ function nextItem(item, currentTime) {
             audio.currentTime = item.dataset.time
         }
     })
-    item.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    updateSelection(item)
 }
 
 function next() {
@@ -243,69 +259,85 @@ function next() {
         if (currentItemIndex == -1) {
             currentItemIndex++
             currentWordIndex = -1
-            nextItem(itemsList[currentItemIndex], currentTime)
-            return
         }
         const item = itemsList[currentItemIndex]
         const line = item.children[1]
         const prevWord = line.children[currentWordIndex]
         currentWordIndex++
-        const word = line.children[currentWordIndex]
 
-        if (currentWordIndex >= item.children[1].childElementCount) {
+        if (currentWordIndex >= line.childElementCount) {
+            updateSelection(item, true, false)
             if (currentItemIndex < itemsList.length - 1) {
                 currentWordIndex = -1
                 currentItemIndex++
-                nextItem(itemsList[currentItemIndex], currentTime)
+                updateSelection(itemsList[currentItemIndex], true, true)
+                scrollToItem(itemsList[currentItemIndex])
             }
         } else {
+            const word = line.children[currentWordIndex]
             word.dataset.beginTime = currentTime
             word.classList.remove('text-zinc-400')
             word.classList.add('text-zinc-100')
         }
+        if (currentWordIndex == 0) {
+            timestampItem(item, currentTime)
+        }
         if (typeof prevWord != 'undefined') {
             prevWord.dataset.endTime = currentTime
         }
-    } else {
-        if (currentItemIndex < itemsList.length - 1) {
-            currentItemIndex++
-            const item = itemsList[currentItemIndex]
-            nextItem(item, currentTime)
+    } else if (currentItemIndex < itemsList.length - 1) {
+        currentItemIndex++
+        const item = itemsList[currentItemIndex]
+        updateSelection(item, true, false)
+        scrollToItem(item)
+        timestampItem(item, currentTime)
+    }
+}
+
+function clearLine(item) {
+    delete item.dataset.time
+    item.firstChild.lastChild.innerText = '--:--.---'
+    if (isWordByWord) {
+        for (let i = 0; i <= item.children[1].childElementCount; i++) {
+            const word = item.children[1].children[i]
+            if (typeof word != 'undefined' && word.dataset.beginTime) {
+                delete word.dataset.beginTime
+                delete word.dataset.endTime
+                word.classList.remove('text-zinc-100')
+                word.classList.add('text-zinc-400')
+            }
         }
     }
 }
 
 function prevItem() {
     if (currentItemIndex >= 0) {
-        const item = itemsList[currentItemIndex]
-        item.firstChild.lastChild.innerText = '--:--.---'
-        delete item.dataset.time
         if (isWordByWord) {
-            for (let i = 0; i <= currentWordIndex; i++) {
-                const word = item.children[1].children[i]
-                if (typeof word != 'undefined' && word.dataset.time) {
-                    delete word.dataset.time
-                    word.classList.remove('text-zinc-100')
-                    word.classList.add('text-zinc-400')
-                }
+            if (currentWordIndex == -1 && currentItemIndex != 0) {
+                updateSelection(itemsList[currentItemIndex], false, false)
+                currentItemIndex--
+                const prevItemElement = itemsList[currentItemIndex]
+                updateSelection(prevItemElement, false, true)
+                scrollToItem(prevItemElement)
+            } else {
+                updateSelection(itemsList[currentItemIndex], false, true)
             }
-            currentWordIndex = 99
-        }
-        // TODO: item.removeEventListener('click', seekToTime)
-        updateSelection(item, (activate = false))
-
-        if (currentItemIndex == 0) {
-            item.scrollIntoView({ behavior: 'smooth', block: 'start' })
-            audio.currentTime = 0
+            currentWordIndex = -1
+            clearLine(itemsList[currentItemIndex])
         } else {
-            const prevItemElement = itemsList[currentItemIndex - 1]
-            prevItemElement.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start',
-            })
-            audio.currentTime = prevItemElement.dataset.time
+            updateSelection(itemsList[currentItemIndex], false, false)
+            clearLine(itemsList[currentItemIndex])
+
+            currentItemIndex--
+            if (currentItemIndex == -1) {
+                scrollToItem(itemsList[0])
+                audio.currentTime = 0
+            } else {
+                const prevItemElement = itemsList[currentItemIndex]
+                scrollToItem(prevItemElement)
+                audio.currentTime = prevItemElement.dataset.time
+            }
         }
-        currentItemIndex--
     }
 }
 
