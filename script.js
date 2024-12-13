@@ -246,9 +246,10 @@ function next() {
             nextItem(itemsList[currentItemIndex], currentTime)
             return
         }
-        currentWordIndex++
         const item = itemsList[currentItemIndex]
         const line = item.children[1]
+        const prevWord = line.children[currentWordIndex]
+        currentWordIndex++
         const word = line.children[currentWordIndex]
 
         if (currentWordIndex >= item.children[1].childElementCount) {
@@ -258,9 +259,12 @@ function next() {
                 nextItem(itemsList[currentItemIndex], currentTime)
             }
         } else {
-            word.dataset.time = currentTime
+            word.dataset.beginTime = currentTime
             word.classList.remove('text-zinc-400')
             word.classList.add('text-zinc-100')
+        }
+        if (typeof prevWord != 'undefined') {
+            prevWord.dataset.endTime = currentTime
         }
     } else {
         if (currentItemIndex < itemsList.length - 1) {
@@ -382,7 +386,7 @@ dlFileBtn.addEventListener('click', () => {
                 text +=
                     word.innerText +
                     `${word.dataset.type == 'word' ? ' ' : ''}` +
-                    `<${formatTime(word.dataset.time)}>`
+                    `<${formatTime(word.dataset.endTime)}>`
             })
             text += '\n'
         } else {
