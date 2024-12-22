@@ -5,13 +5,35 @@ const seekBar = document.getElementById('seekBar')
 const currentTimeDisplay = document.getElementById('currentTime')
 const durationDisplay = document.getElementById('duration')
 const wordByWordCheckbox = document.getElementById('isWordByWord')
+const duetCheckbox = document.getElementById('isDuet')
+const switchPersonBtn = document.getElementById('switchPersonBtn')
 let isWordByWord = wordByWordCheckbox.checked
+let isDuet = duetCheckbox.checked
 
 wordByWordCheckbox.addEventListener('change', (e) => {
     isWordByWord = e.target.checked
     if (itemsList.length != 0) {
         plainLyricParser()
     }
+})
+
+function raiseBtn(button, raise, raisedWith = 'bottom-14') {
+    if (raise) {
+        button.classList.remove('bottom-0')
+        button.classList.add(raisedWith)
+    } else {
+        button.classList.remove(raisedWith)
+        button.classList.add('bottom-0')
+    }
+}
+
+raiseBtn(switchPersonBtn, isDuet)
+duetCheckbox.addEventListener('change', (e) => {
+    isDuet = e.target.checked
+    if (itemsList.length != 0) {
+        plainLyricParser()
+    }
+    raiseBtn(switchPersonBtn, isDuet)
 })
 
 function sourceFile() {
@@ -218,6 +240,10 @@ function plainLyricParser() {
         } else {
             lineEl.innerText = line
         }
+        if (isDuet) {
+            item.dataset.person = 1
+            lineEl.classList.add('text-start')
+        }
         lineEl.classList.add('grow')
 
         item.appendChild(timestamp)
@@ -235,10 +261,8 @@ function plainLyricParser() {
         updateSelection(itemsList[0], true, true)
     }
 
-    nextItemBtn.classList.remove('bottom-0')
-    nextItemBtn.classList.add('bottom-14')
-    prevItemBtn.classList.remove('bottom-0')
-    prevItemBtn.classList.add('bottom-28')
+    raiseBtn(nextItemBtn, true)
+    raiseBtn(prevItemBtn, true, 'bottom-28')
 }
 parseBtn.addEventListener('click', plainLyricParser)
 
@@ -365,6 +389,23 @@ window.addEventListener('keydown', (e) => {
 nextItemBtn.addEventListener('click', next)
 prevItemBtn.addEventListener('click', prevItem)
 
+function switchPerson(item) {
+    if (item.dataset.person == 1) {
+        item.dataset.person = 2
+        item.children[1].classList.remove('text-start')
+        item.children[1].classList.add('text-end')
+    } else {
+        item.dataset.person = 1
+        item.children[1].classList.remove('text-end')
+        item.children[1].classList.add('text-start')
+    }
+}
+switchPersonBtn.addEventListener('click', () => {
+    for (let i = currentItemIndex; i < itemsList.length; i++) {
+        switchPerson(itemsList[i])
+    }
+})
+
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
 })
@@ -411,18 +452,25 @@ dlFileBtn.addEventListener('click', () => {
         const time = item.dataset.time
         if (typeof time != 'undefined') {
             text += `[${formatTime(time)}]`
-        }
-        if (isWordByWord) {
-            text += `<${formatTime(time)}>`
-            Array.from(item.children[1].children).forEach((word) => {
-                text +=
-                    word.innerText +
-                    `${word.dataset.type == 'word' ? ' ' : ''}` +
-                    `<${formatTime(word.dataset.endTime)}>`
-            })
-            text += '\n'
-        } else {
-            text += `${item.children[1].innerText}\n`
+            if (isDuet) {
+                if (item.dataset.person == 1) {
+                    text += 'v1:'
+                } else {
+                    text += 'v2:'
+                }
+            }
+            if (isWordByWord) {
+                text += `<${formatTime(time)}>`
+                Array.from(item.children[1].children).forEach((word) => {
+                    text +=
+                        word.innerText +
+                        `${word.dataset.type == 'word' ? ' ' : ''}` +
+                        `<${formatTime(word.dataset.endTime)}>`
+                })
+                text += '\n'
+            } else {
+                text += `${item.children[1].innerText}\n`
+            }
         }
     })
     if (fileInput.files.length != 0) {
