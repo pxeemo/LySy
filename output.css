@@ -748,6 +748,10 @@ video {
   width: 100vw;
 }
 
+.flex-grow {
+  flex-grow: 1;
+}
+
 .grow {
   flex-grow: 1;
 }

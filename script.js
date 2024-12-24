@@ -167,6 +167,76 @@ function splitLineIntoWords(line, lineEl) {
     })
 }
 
+function createItemElement(line) {
+    const item = document.createElement('li')
+    const timestamp = document.createElement('div')
+    const updateTimeIcon = document.createElement('img')
+    const timestampText = document.createElement('span')
+    const lineEl = document.createElement('div')
+    const editIcon = document.createElement('img')
+    item.classList.add(
+        'flex',
+        'px-1',
+        'gap-1',
+        'my-2',
+        'rounded-md',
+        'text-zinc-400',
+        'items-center',
+        'border-2',
+        'border-zinc-700',
+        'duration-500',
+        'ease-out',
+        'transition-color',
+        'scroll-mt-[20svh]',
+    )
+    updateTimeIcon.classList.add('mx-auto')
+    updateTimeIcon.src = './assets/update.svg'
+    updateTimeIcon.width = 15
+    timestampText.innerText = '--:--.---'
+
+    editIcon.classList.add('mx-2', 'cursor-pointer')
+    editIcon.src = './assets/edit.svg'
+    editIcon.width = 20
+    editIcon.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const target = e.currentTarget.previousElementSibling
+        editItemInput.value = target.innerText
+        editItemModal.showModal()
+        editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
+        editItemInput.focus()
+    })
+
+    timestamp.classList.add('w-18', 'items-center', 'text-center', 'text-xs')
+    timestamp.appendChild(updateTimeIcon)
+    timestamp.appendChild(timestampText)
+    timestamp.classList.add('font-mono', 'p-1', 'cursor-pointer')
+    timestamp.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const target = e.currentTarget
+        target.children[1].innerText = formatTime(audio.currentTime)
+        target, (parentNode.dataset.time = audio.currentTime)
+        updateSelection(target.parentNode)
+    })
+
+    if (isWordByWord) {
+        if (line.trim() == '') return
+        splitLineIntoWords(line, lineEl)
+    } else {
+        lineEl.innerText = line
+    }
+    if (isDuet) {
+        item.dataset.person = 1
+        lineEl.classList.add('text-start')
+    }
+    lineEl.classList.add('flex-grow')
+
+    item.appendChild(timestamp)
+    item.appendChild(lineEl)
+    item.appendChild(editIcon)
+
+    return item
+}
+
 const editItemModal = document.getElementById('editItemModal')
 const editItemInput = document.getElementById('editItemInput')
 const editItemCancel = document.getElementById('editItemCancel')
@@ -179,77 +249,7 @@ function plainLyricParser() {
     itemsList = []
     currentItemIndex = -1
     plainLyric.split('\n').forEach((line) => {
-        const item = document.createElement('li')
-        const timestamp = document.createElement('div')
-        const updateTimeIcon = document.createElement('img')
-        const timestampText = document.createElement('span')
-        const lineEl = document.createElement('div')
-        const editIcon = document.createElement('img')
-        item.classList.add(
-            'flex',
-            'px-1',
-            'gap-1',
-            'my-2',
-            'rounded-md',
-            'text-zinc-400',
-            'items-center',
-            'border-2',
-            'border-zinc-700',
-            'duration-500',
-            'ease-out',
-            'transition-color',
-            'scroll-mt-[20svh]',
-        )
-        updateTimeIcon.classList.add('mx-auto')
-        updateTimeIcon.src = './assets/update.svg'
-        updateTimeIcon.width = 15
-        timestampText.innerText = '--:--.---'
-
-        editIcon.classList.add('mx-2', 'cursor-pointer')
-        editIcon.src = './assets/edit.svg'
-        editIcon.width = 20
-        editIcon.addEventListener('click', (e) => {
-            e.stopPropagation()
-            const target = e.currentTarget.previousElementSibling
-            editItemInput.value = target.innerText
-            editItemModal.showModal()
-            editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
-            editItemInput.focus()
-        })
-
-        timestamp.classList.add(
-            'w-18',
-            'items-center',
-            'text-center',
-            'text-xs',
-        )
-        timestamp.appendChild(updateTimeIcon)
-        timestamp.appendChild(timestampText)
-        timestamp.classList.add('font-mono', 'p-1', 'cursor-pointer')
-        timestamp.addEventListener('click', (e) => {
-            e.stopPropagation()
-            const target = e.currentTarget
-            target.children[1].innerText = formatTime(audio.currentTime)
-            target, (parentNode.dataset.time = audio.currentTime)
-            updateSelection(target.parentNode)
-        })
-
-        if (isWordByWord) {
-            if (line.trim() == '') return
-            splitLineIntoWords(line, lineEl)
-        } else {
-            lineEl.innerText = line
-        }
-        if (isDuet) {
-            item.dataset.person = 1
-            lineEl.classList.add('text-start')
-        }
-        lineEl.classList.add('grow')
-
-        item.appendChild(timestamp)
-        item.appendChild(lineEl)
-        item.appendChild(editIcon)
-
+        item = createItemElement(line)
         lyricList.appendChild(item)
         itemsList.push(item)
     })
