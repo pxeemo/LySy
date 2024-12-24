@@ -6,7 +6,7 @@ const currentTimeDisplay = document.getElementById('currentTime')
 const durationDisplay = document.getElementById('duration')
 const wordByWordCheckbox = document.getElementById('isWordByWord')
 const duetCheckbox = document.getElementById('isDuet')
-const switchPersonBtn = document.getElementById('switchPersonBtn')
+const switchVocalistBtn = document.getElementById('switchVocalistBtn')
 let isWordByWord = wordByWordCheckbox.checked
 let isDuet = duetCheckbox.checked
 
@@ -27,13 +27,13 @@ function raiseBtn(button, raise, raisedWith = 'bottom-14') {
     }
 }
 
-raiseBtn(switchPersonBtn, isDuet)
+raiseBtn(switchVocalistBtn, isDuet)
 duetCheckbox.addEventListener('change', (e) => {
     isDuet = e.target.checked
     if (itemsList.length != 0) {
         plainLyricParser()
     }
-    raiseBtn(switchPersonBtn, isDuet)
+    raiseBtn(switchVocalistBtn, isDuet)
 })
 
 function sourceFile() {
@@ -199,6 +199,7 @@ function createItemElement(line) {
     editIcon.width = 20
     editIcon.addEventListener('click', (e) => {
         e.stopPropagation()
+        audio.pause()
         const target = e.currentTarget.previousElementSibling
         editItemInput.value = target.innerText
         editItemModal.showModal()
@@ -225,7 +226,7 @@ function createItemElement(line) {
         lineEl.innerText = line
     }
     if (isDuet) {
-        item.dataset.person = 1
+        item.dataset.vocalist = 1
         lineEl.classList.add('text-start')
     }
     lineEl.classList.add('flex-grow')
@@ -389,20 +390,25 @@ window.addEventListener('keydown', (e) => {
 nextItemBtn.addEventListener('click', next)
 prevItemBtn.addEventListener('click', prevItem)
 
-function switchPerson(item) {
-    if (item.dataset.person == 1) {
-        item.dataset.person = 2
+function switchVocalist(item) {
+    if (item.dataset.vocalist == 1) {
+        item.dataset.vocalist = 2
         item.children[1].classList.remove('text-start')
         item.children[1].classList.add('text-end')
     } else {
-        item.dataset.person = 1
+        item.dataset.vocalist = 1
         item.children[1].classList.remove('text-end')
         item.children[1].classList.add('text-start')
     }
 }
-switchPersonBtn.addEventListener('click', () => {
-    for (let i = currentItemIndex; i < itemsList.length; i++) {
-        switchPerson(itemsList[i])
+switchVocalistBtn.addEventListener('click', () => {
+    if (itemsList.length != 0) {
+        for (let i = currentItemIndex; i < itemsList.length; i++) {
+            if (i < 0) {
+                i++
+            }
+            switchVocalist(itemsList[i])
+        }
     }
 })
 
@@ -453,7 +459,7 @@ dlFileBtn.addEventListener('click', () => {
         if (typeof time != 'undefined') {
             text += `[${formatTime(time)}]`
             if (isDuet) {
-                if (item.dataset.person == 1) {
+                if (item.dataset.vocalist == 1) {
                     text += 'v1:'
                 } else {
                     text += 'v2:'
