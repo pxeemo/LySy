@@ -55,10 +55,10 @@ fileInput.addEventListener('change', sourceFile)
 function togglePlayPause() {
     if (audio.paused) {
         audio.play()
-        playPauseBtn.firstChild.src = './assets/pause.svg'
+        playPauseBtn.firstElementChild.src = './assets/pause.svg'
     } else {
         audio.pause()
-        playPauseBtn.firstChild.src = './assets/play_arrow.svg'
+        playPauseBtn.firstElementChild.src = './assets/play_arrow.svg'
     }
 }
 
