@@ -174,6 +174,7 @@ function createItemElement(line) {
     const timestampText = document.createElement('span')
     const lineEl = document.createElement('div')
     const editIcon = document.createElement('img')
+    item.dataset.type = 'normal'
     item.classList.add(
         'flex',
         'px-1',
@@ -199,9 +200,9 @@ function createItemElement(line) {
     editIcon.width = 20
     editIcon.addEventListener('click', (e) => {
         e.stopPropagation()
-        audio.pause()
         const target = e.currentTarget.previousElementSibling
         editItemInput.value = target.innerText
+        markAsBg.checked = target.parentElement.dataset.type == 'bg'
         editItemModal.showModal()
         editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
         editItemInput.focus()
@@ -244,6 +245,9 @@ const editItemCancel = document.getElementById('editItemCancel')
 const editItemRemove = document.getElementById('editItemRemove')
 const editItemDone = document.getElementById('editItemDone')
 const editItemIndex = document.getElementById('editItemIndex')
+const addItemAboveBtn = document.getElementById('addItemAboveBtn')
+const addItemBelowBtn = document.getElementById('addItemBelowBtn')
+const markAsBg = document.getElementById('markAsBg')
 function plainLyricParser() {
     const plainLyric = lyricInput.value
     lyricList.innerHTML = ''
@@ -416,15 +420,21 @@ document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
 })
 
-editItemDone.addEventListener('click', () => {
+// editItemModal.addEventListener('close', (e) => console.log(e))
+// TODO: play audio when the modal gets closed
+
+addItemAboveBtn.addEventListener('click', () => {
     const index = editItemIndex.value
-    if (isWordByWord) {
-        itemsList[index].children[1].innerHTML = ''
-        splitLineIntoWords(editItemInput.value, itemsList[index].children[1])
-        currentWordIndex = -1
-    } else {
-        itemsList[index].children[1].innerText = editItemInput.value
-    }
+    newItem = createItemElement('')
+    itemsList[index].insertAdjacentElement('beforebegin', newItem)
+    itemsList.splice(index, 0, newItem)
+})
+
+addItemBelowBtn.addEventListener('click', () => {
+    const index = editItemIndex.value
+    newItem = createItemElement('')
+    itemsList[index].insertAdjacentElement('afterend', newItem)
+    itemsList.splice(index + 1, 0, newItem)
 })
 
 editItemRemove.addEventListener('click', () => {
@@ -436,6 +446,22 @@ editItemRemove.addEventListener('click', () => {
         if (currentItemIndex == index - 1) {
             currentWordIndex = 99
         }
+    }
+})
+
+editItemDone.addEventListener('click', () => {
+    const index = editItemIndex.value
+    if (isWordByWord) {
+        itemsList[index].children[1].innerHTML = ''
+        splitLineIntoWords(editItemInput.value, itemsList[index].children[1])
+        currentWordIndex = -1
+    } else {
+        itemsList[index].children[1].innerText = editItemInput.value
+    }
+    if (markAsBg.checked) {
+        itemsList[index].dataset.type = 'bg'
+    } else {
+        itemsList[index].dataset.type = 'normal'
     }
 })
 
@@ -457,14 +483,19 @@ dlFileBtn.addEventListener('click', () => {
     itemsList.forEach((item) => {
         const time = item.dataset.time
         if (typeof time != 'undefined') {
-            text += `[${formatTime(time)}]`
-            if (isDuet) {
-                if (item.dataset.vocalist == 1) {
-                    text += 'v1:'
-                } else {
-                    text += 'v2:'
+            if (item.dataset.type == 'normal') {
+                text += `[${formatTime(time)}]`
+                if (isDuet) {
+                    if (item.dataset.vocalist == 1) {
+                        text += 'v1:'
+                    } else {
+                        text += 'v2:'
+                    }
                 }
+            } else {
+                text = text.slice(0, -1) + ' [bg: '
             }
+
             if (isWordByWord) {
                 text += `<${formatTime(time)}>`
                 Array.from(item.children[1].children).forEach((word) => {
@@ -473,10 +504,14 @@ dlFileBtn.addEventListener('click', () => {
                         `${word.dataset.type == 'word' ? ' ' : ''}` +
                         `<${formatTime(word.dataset.endTime)}>`
                 })
-                text += '\n'
             } else {
-                text += `${item.children[1].innerText}\n`
+                text += `${item.children[1].innerText}`
             }
+
+            if (item.dataset.type == 'bg') {
+                text += ']'
+            }
+            text += '\n'
         }
     })
     if (fileInput.files.length != 0) {
