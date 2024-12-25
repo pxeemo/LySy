@@ -424,17 +424,27 @@ document.getElementById('playbackSpeed').addEventListener('change', (e) => {
 // TODO: play audio when the modal gets closed
 
 addItemAboveBtn.addEventListener('click', () => {
-    const index = editItemIndex.value
-    newItem = createItemElement('')
-    itemsList[index].insertAdjacentElement('beforebegin', newItem)
-    itemsList.splice(index, 0, newItem)
+    const index = Number(editItemIndex.value)
+    if (currentItemIndex < index) {
+        newItem = createItemElement('')
+        if (itemsList[index].dataset.vocalist == 2) {
+            switchVocalist(newItem)
+        }
+        itemsList[index].insertAdjacentElement('beforebegin', newItem)
+        itemsList.splice(index, 0, newItem)
+    }
 })
 
 addItemBelowBtn.addEventListener('click', () => {
-    const index = editItemIndex.value
-    newItem = createItemElement('')
-    itemsList[index].insertAdjacentElement('afterend', newItem)
-    itemsList.splice(index + 1, 0, newItem)
+    const index = Number(editItemIndex.value)
+    if (currentItemIndex <= index) {
+        newItem = createItemElement('')
+        if (itemsList[index].dataset.vocalist == 2) {
+            switchVocalist(newItem)
+        }
+        itemsList[index].insertAdjacentElement('afterend', newItem)
+        itemsList.splice(index + 1, 0, newItem)
+    }
 })
 
 editItemRemove.addEventListener('click', () => {
