@@ -230,7 +230,7 @@ function createItemElement(line) {
         item.dataset.vocalist = 1
         lineEl.classList.add('text-start')
     }
-    lineEl.classList.add('flex-grow')
+    lineEl.classList.add('flex-grow', 'text-lg')
 
     item.appendChild(timestamp)
     item.appendChild(lineEl)
@@ -460,8 +460,12 @@ editItemDone.addEventListener('click', () => {
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
+        itemsList[index].children[1].classList.remove('text-lg')
+        itemsList[index].children[1].classList.add('text-sm')
     } else {
         itemsList[index].dataset.type = 'normal'
+        itemsList[index].children[1].classList.remove('text-sm')
+        itemsList[index].children[1].classList.add('text-lg')
     }
 })
 
