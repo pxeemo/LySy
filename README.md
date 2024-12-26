@@ -11,7 +11,7 @@ Welcome to the Lyrics Syncer Tool! This web application helps you create [LRC](<
 - [ ] Load text from file
 - [x] Word-by-word syncing
 - [x] Syllable-by-syllable syncing
-- [ ] Duet and bg tags support
+- [x] Duet and bg tags support
 - [ ] Export as:
     - [x] LRC
     - [ ] JSON
