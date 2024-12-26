@@ -507,7 +507,7 @@ dlFileBtn.addEventListener('click', () => {
                     }
                 }
             } else {
-                text = text.slice(0, -1) + ' [bg: '
+                text = text.slice(0, -1) + ' [bg:'
             }
 
             if (isWordByWord) {
