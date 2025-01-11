@@ -254,6 +254,7 @@ function plainLyricParser() {
     itemsList = []
     currentItemIndex = -1
     plainLyric.split('\n').forEach((line) => {
+        if (isWordByWord && line.trim() == '') return
         item = createItemElement(line)
         lyricList.appendChild(item)
         itemsList.push(item)
