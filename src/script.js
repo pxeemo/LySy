@@ -346,15 +346,21 @@ function clearLine(item) {
 
 function prevItem() {
     if (currentItemIndex >= 0) {
+        const prevItemElement = itemsList[currentItemIndex - 1]
         if (isWordByWord) {
             if (currentWordIndex == -1 && currentItemIndex != 0) {
                 updateSelection(itemsList[currentItemIndex], false, false)
                 currentItemIndex--
-                const prevItemElement = itemsList[currentItemIndex]
                 updateSelection(prevItemElement, false, true)
                 scrollToItem(prevItemElement)
+                audio.currentTime = itemsList[currentItemIndex - 1].dataset.time
             } else {
                 updateSelection(itemsList[currentItemIndex], false, true)
+                if (currentItemIndex != 0) {
+                    audio.currentTime = prevItemElement.dataset.time
+                } else {
+                    audio.currentTime -= 4
+                }
             }
             currentWordIndex = -1
             clearLine(itemsList[currentItemIndex])
@@ -365,9 +371,8 @@ function prevItem() {
             currentItemIndex--
             if (currentItemIndex == -1) {
                 scrollToItem(itemsList[0])
-                audio.currentTime = 0
+                audio.currentTime -= 4
             } else {
-                const prevItemElement = itemsList[currentItemIndex]
                 scrollToItem(prevItemElement)
                 audio.currentTime = prevItemElement.dataset.time
             }
