@@ -107,6 +107,16 @@ const lyricList = document.getElementById('lyricList')
 const nextItemBtn = document.getElementById('nextItemBtn')
 const prevItemBtn = document.getElementById('prevItemBtn')
 
+const editItemModal = document.getElementById('editItemModal')
+const editItemInput = document.getElementById('editItemInput')
+const editItemCancel = document.getElementById('editItemCancel')
+const editItemRemove = document.getElementById('editItemRemove')
+const editItemDone = document.getElementById('editItemDone')
+const editItemIndex = document.getElementById('editItemIndex')
+const addItemAboveBtn = document.getElementById('addItemAboveBtn')
+const addItemBelowBtn = document.getElementById('addItemBelowBtn')
+const markAsBg = document.getElementById('markAsBg')
+
 let itemsList = []
 let currentItemIndex = -1
 let currentWordIndex = -1
@@ -201,10 +211,13 @@ function createItemElement(line) {
     editIcon.addEventListener('click', (e) => {
         e.stopPropagation()
         const target = e.currentTarget.previousElementSibling
+        const index = itemsList.indexOf(e.currentTarget.parentNode)
         editItemInput.value = target.innerText
         markAsBg.checked = target.parentElement.dataset.type == 'bg'
+        addItemAboveBtn.disabled = index <= currentItemIndex ? true : false
+        addItemBelowBtn.disabled = index < currentItemIndex ? true : false
         editItemModal.showModal()
-        editItemIndex.value = itemsList.indexOf(e.currentTarget.parentNode)
+        editItemIndex.value = index
         editItemInput.focus()
     })
 
@@ -239,15 +252,6 @@ function createItemElement(line) {
     return item
 }
 
-const editItemModal = document.getElementById('editItemModal')
-const editItemInput = document.getElementById('editItemInput')
-const editItemCancel = document.getElementById('editItemCancel')
-const editItemRemove = document.getElementById('editItemRemove')
-const editItemDone = document.getElementById('editItemDone')
-const editItemIndex = document.getElementById('editItemIndex')
-const addItemAboveBtn = document.getElementById('addItemAboveBtn')
-const addItemBelowBtn = document.getElementById('addItemBelowBtn')
-const markAsBg = document.getElementById('markAsBg')
 function plainLyricParser() {
     const plainLyric = lyricInput.value
     lyricList.innerHTML = ''
@@ -423,31 +427,24 @@ document.getElementById('playbackSpeed').addEventListener('change', (e) => {
 
 // editItemModal.addEventListener('close', (e) => console.log(e))
 // TODO: play audio when the modal gets closed
-
-addItemAboveBtn.addEventListener('click', () => {
+//
+function addNewItem(above) {
     const index = Number(editItemIndex.value)
-    if (currentItemIndex < index) {
-        newItem = createItemElement('')
-        if (itemsList[index].dataset.vocalist == 2) {
-            switchVocalist(newItem)
-        }
+    newItem = createItemElement(editItemInput.value)
+    if (itemsList[index].dataset.vocalist == 2) {
+        switchVocalist(newItem)
+    }
+    if (above) {
         itemsList[index].insertAdjacentElement('beforebegin', newItem)
         itemsList.splice(index, 0, newItem)
-    }
-})
-
-addItemBelowBtn.addEventListener('click', () => {
-    const index = Number(editItemIndex.value)
-    if (currentItemIndex <= index) {
-        newItem = createItemElement('')
-        if (itemsList[index].dataset.vocalist == 2) {
-            switchVocalist(newItem)
-        }
+    } else {
         itemsList[index].insertAdjacentElement('afterend', newItem)
         itemsList.splice(index + 1, 0, newItem)
     }
-})
+}
 
+addItemAboveBtn.addEventListener('click', () => addNewItem(true))
+addItemBelowBtn.addEventListener('click', () => addNewItem(false))
 editItemRemove.addEventListener('click', () => {
     const index = editItemIndex.value
     itemsList[index].classList.add('hidden')
