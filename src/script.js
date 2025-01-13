@@ -356,11 +356,10 @@ function prevItem() {
                 audio.currentTime = itemsList[currentItemIndex - 1].dataset.time
             } else {
                 updateSelection(itemsList[currentItemIndex], false, true)
-                if (currentItemIndex != 0) {
-                    audio.currentTime = prevItemElement.dataset.time
-                } else {
-                    audio.currentTime -= 4
-                }
+                audio.currentTime =
+                    currentItemIndex != 0
+                        ? prevItemElement.dataset.time
+                        : Math.max(0, audio.currentTime - 4)
             }
             currentWordIndex = -1
             clearLine(itemsList[currentItemIndex])
@@ -371,7 +370,7 @@ function prevItem() {
             currentItemIndex--
             if (currentItemIndex == -1) {
                 scrollToItem(itemsList[0])
-                audio.currentTime -= 4
+                audio.currentTime = Math.max(0, audio.currentTime - 4)
             } else {
                 scrollToItem(prevItemElement)
                 audio.currentTime = prevItemElement.dataset.time
