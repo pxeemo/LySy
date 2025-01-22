@@ -159,6 +159,7 @@ function scrollToItem(item) {
 
 function splitLineIntoWords(line, lineEl) {
     line.split(' ').forEach((word) => {
+        if (word == '') return
         word.split(/([,،、]|-)|<>/).forEach((part) => {
             if (typeof part != 'undefined' && part != '') {
                 if (part == '-') {
