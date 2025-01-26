@@ -217,6 +217,8 @@ function createItemElement(line) {
         markAsBg.checked = target.parentElement.dataset.type == 'bg'
         addItemAboveBtn.disabled = index <= currentItemIndex ? true : false
         addItemBelowBtn.disabled = index < currentItemIndex ? true : false
+        editItemInput.disabled =
+            isWordByWord && index < currentItemIndex ? true : false
         editItemModal.showModal()
         editItemIndex.value = index
         editItemInput.focus()
