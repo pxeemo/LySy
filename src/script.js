@@ -7,6 +7,7 @@ const durationDisplay = document.getElementById('duration')
 const wordByWordCheckbox = document.getElementById('isWordByWord')
 const duetCheckbox = document.getElementById('isDuet')
 const switchVocalistBtn = document.getElementById('switchVocalistBtn')
+const wordEndBtn = document.getElementById('wordEndBtn')
 let isWordByWord = wordByWordCheckbox.checked
 let isDuet = duetCheckbox.checked
 
@@ -15,25 +16,28 @@ wordByWordCheckbox.addEventListener('change', (e) => {
     if (itemsList.length != 0) {
         plainLyricParser()
     }
+    raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
+    raiseFab(wordEndBtn, isWordByWord, 1)
 })
 
-function raiseBtn(button, raise, raisedWith = 'bottom-14') {
+function raiseFab(button, raise, step = 1) {
+    button.classList.remove('bottom-0', 'bottom-16', 'bottom-[7.5rem]')
     if (raise) {
-        button.classList.remove('bottom-0')
-        button.classList.add(raisedWith)
+        button.classList.add(step == 1 ? 'bottom-16' : 'bottom-[7.5rem]')
     } else {
-        button.classList.remove(raisedWith)
         button.classList.add('bottom-0')
     }
 }
 
-raiseBtn(switchVocalistBtn, isDuet)
+raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
+raiseFab(wordEndBtn, isWordByWord, 1)
 duetCheckbox.addEventListener('change', (e) => {
     isDuet = e.target.checked
     if (itemsList.length != 0) {
         plainLyricParser()
     }
-    raiseBtn(switchVocalistBtn, isDuet)
+    raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
+    raiseFab(wordEndBtn, isWordByWord, 1)
 })
 
 function sourceFile() {
@@ -274,8 +278,8 @@ function plainLyricParser() {
         updateSelection(itemsList[0], true, true)
     }
 
-    raiseBtn(nextItemBtn, true)
-    raiseBtn(prevItemBtn, true, 'bottom-28')
+    raiseFab(nextItemBtn, true, 1)
+    raiseFab(prevItemBtn, true, 2)
 }
 parseBtn.addEventListener('click', plainLyricParser)
 
@@ -288,6 +292,15 @@ function timestampItem(item, currentTime) {
         }
     })
 }
+
+wordEndBtn.addEventListener('click', () => {
+    const currentTime = audio.currentTime
+    const word =
+        itemsList[currentItemIndex]?.children[1]?.children[currentWordIndex]
+    if (typeof word == 'undefined') return
+    word.dataset.endTime = currentTime
+    word.classList.add('shadow-[inset_-7px_0_6px_-6px_rgb(255,255,255,1)]')
+})
 
 function next() {
     const currentTime = audio.currentTime
@@ -319,7 +332,10 @@ function next() {
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
         }
-        if (typeof prevWord != 'undefined') {
+        if (
+            typeof prevWord != 'undefined' &&
+            typeof prevWord.dataset.endTime == 'undefined'
+        ) {
             prevWord.dataset.endTime = currentTime
         }
     } else if (currentItemIndex < itemsList.length - 1) {
@@ -504,13 +520,7 @@ dlFileBtn.addEventListener('click', () => {
         if (typeof time != 'undefined') {
             if (item.dataset.type == 'normal') {
                 text += `[${formatTime(time)}]`
-                if (isDuet) {
-                    if (item.dataset.vocalist == 1) {
-                        text += 'v1:'
-                    } else {
-                        text += 'v2:'
-                    }
-                }
+                if (isDuet) text += item.dataset.vocalist == 1 ? 'v1:' : 'v2:'
             } else {
                 text = text.slice(0, -1) + ' [bg:'
             }
@@ -518,7 +528,9 @@ dlFileBtn.addEventListener('click', () => {
             if (isWordByWord) {
                 text += `<${formatTime(time)}>`
                 Array.from(item.children[1].children).forEach((word) => {
+                    const beginTime = `<${formatTime(word.dataset.beginTime)}>`
                     text +=
+                        `${text.endsWith(beginTime) ? '' : beginTime}` +
                         word.innerText +
                         `${word.dataset.type == 'word' ? ' ' : ''}` +
                         `<${formatTime(word.dataset.endTime)}>`
