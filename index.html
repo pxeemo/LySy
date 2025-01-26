@@ -8,10 +8,10 @@
         <link rel="stylesheet" href="./slider.css" />
         <link rel="icon" href="./assets/favicon.svg" />
     </head>
-    <body class="bg-zinc-900 text-zinc-200 pb-14">
+    <body class="bg-zinc-900 text-zinc-200 pb-36">
         <audio id="audio"></audio>
         <div
-            class="fixed z-20 w-screen h-10 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]"
+            class="fixed z-20 w-screen h-12 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]"
         >
             <div class="hidden gap-4 items-center" id="player">
                 <button class="text-mono" id="backwardBtn">
@@ -125,22 +125,28 @@
 
         <!-- Floating action buttons -->
         <button
-            class="fixed z-10 bottom-0 right-4 h-8 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-full px-2 transition-all delay-50"
+            class="fixed bottom-0 left-4 h-12 w-12 text-xs/3 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-xl transition-all"
+            id="switchVocalistBtn"
+        >
+            Switch Vocalist
+        </button>
+        <button
+            class="fixed bottom-0 text-orange-400 left-4 h-12 w-12 text-xs/3 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-xl transition-all"
+            id="wordEndBtn"
+        >
+            Word End
+        </button>
+        <button
+            class="fixed bottom-0 right-4 h-12 w-12 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-xl transition-all delay-150"
             id="prevItemBtn"
         >
             Back
         </button>
         <button
-            class="fixed z-10 bottom-0 right-4 h-10 bg-orange-400 text-black rounded-2xl px-4 transition-all"
+            class="fixed bottom-0 right-4 h-12 w-12 font-semibold bg-orange-400 text-black rounded-xl transition-all"
             id="nextItemBtn"
         >
             Next
-        </button>
-        <button
-            class="fixed z-10 bottom-0 left-4 h-8 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-full px-2 transition-all delay-50"
-            id="switchVocalistBtn"
-        >
-            Switch Vocalist
         </button>
 
         <!-- Edit Item Modal -->
@@ -159,7 +165,12 @@
                 ></textarea>
                 <div class="flex flex-col items-start">
                     <div class="m-1 px-2 text-zinc-300 rounded-full">
-                        <input id="markAsBg" type="checkbox" name="markAsBg" />
+                        <input
+                            class="accent-orange-400"
+                            id="markAsBg"
+                            type="checkbox"
+                            name="markAsBg"
+                        />
                         <label class="px-1" for="markAsBg">
                             Mark as background vocal
                         </label>
