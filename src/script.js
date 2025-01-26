@@ -164,10 +164,10 @@ function scrollToItem(item) {
 function splitLineIntoWords(line, lineEl) {
     line.split(' ').forEach((word) => {
         if (word == '') return
-        word.split(/([,،、]|-)|<>/).forEach((part) => {
+        word.split(/(、|-)|<>/).forEach((part) => {
             if (typeof part != 'undefined' && part != '') {
-                if (part == '-') {
-                    lineEl.lastChild.innerText += '-'
+                if (['-', '、'].includes(part)) {
+                    lineEl.lastChild.innerText += part
                     return
                 }
                 const partEl = document.createElement('span')
