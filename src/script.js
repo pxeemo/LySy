@@ -21,11 +21,11 @@ wordByWordCheckbox.addEventListener('change', (e) => {
 })
 
 function raiseFab(button, raise, step = 1) {
-    button.classList.remove('bottom-0', 'bottom-16', 'bottom-[7.5rem]')
+    button.classList.remove('bottom-[-2rem]', 'bottom-16', 'bottom-32')
     if (raise) {
-        button.classList.add(step == 1 ? 'bottom-16' : 'bottom-[7.5rem]')
+        button.classList.add(step == 1 ? 'bottom-16' : 'bottom-32')
     } else {
-        button.classList.add('bottom-0')
+        button.classList.add('bottom-[-2rem]')
     }
 }
 
