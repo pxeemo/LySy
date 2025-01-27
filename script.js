@@ -250,7 +250,7 @@ function createItemElement(line) {
         item.dataset.vocalist = 1
         lineEl.classList.add('text-start')
     }
-    lineEl.classList.add('flex-grow', 'text-lg')
+    lineEl.classList.add('grow', 'text-lg')
 
     item.appendChild(timestamp)
     item.appendChild(lineEl)
@@ -299,7 +299,8 @@ wordEndBtn.addEventListener('click', () => {
         itemsList[currentItemIndex]?.children[1]?.children[currentWordIndex]
     if (typeof word == 'undefined') return
     word.dataset.endTime = currentTime
-    word.classList.add('shadow-[inset_-7px_0_6px_-6px_rgb(255,255,255,1)]')
+    word.classList.remove('text-unfinished')
+    word.classList.add('text-zinc-100')
 })
 
 function next() {
@@ -327,8 +328,10 @@ function next() {
             const word = line.children[currentWordIndex]
             word.dataset.beginTime = currentTime
             word.classList.remove('text-zinc-400')
-            word.classList.add('text-zinc-100')
+            word.classList.add('text-unfinished')
         }
+        prevWord?.classList.remove('text-unfinished')
+        prevWord?.classList.add('text-zinc-100')
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
         }
@@ -356,7 +359,7 @@ function clearLine(item) {
             if (typeof word != 'undefined' && word.dataset.beginTime) {
                 delete word.dataset.beginTime
                 delete word.dataset.endTime
-                word.classList.remove('text-zinc-100')
+                word.classList.remove('text-zinc-100', 'text-unfinished')
                 word.classList.add('text-zinc-400')
             }
         }
@@ -365,16 +368,18 @@ function clearLine(item) {
 
 function prevItem() {
     if (currentItemIndex >= 0) {
-        const prevItemElement = itemsList[currentItemIndex - 1]
+        const item = itemsList[currentItemIndex]
+        const prevItemElement =
+            currentItemIndex != 0 ? itemsList[currentItemIndex - 1] : undefined
         if (isWordByWord) {
             if (currentWordIndex == -1 && currentItemIndex != 0) {
-                updateSelection(itemsList[currentItemIndex], false, false)
+                updateSelection(item, false, false)
                 currentItemIndex--
                 updateSelection(prevItemElement, false, true)
                 scrollToItem(prevItemElement)
-                audio.currentTime = itemsList[currentItemIndex - 1].dataset.time
+                audio.currentTime = prevItemElement.dataset.time
             } else {
-                updateSelection(itemsList[currentItemIndex], false, true)
+                updateSelection(item, false, true)
                 audio.currentTime =
                     currentItemIndex != 0
                         ? prevItemElement.dataset.time
@@ -385,7 +390,6 @@ function prevItem() {
         } else {
             updateSelection(itemsList[currentItemIndex], false, false)
             clearLine(itemsList[currentItemIndex])
-
             currentItemIndex--
             if (currentItemIndex == -1) {
                 scrollToItem(itemsList[0])

@@ -3,3 +3,9 @@
 @utility container {
     margin-inline: auto;
 }
+
+.text-unfinished {
+    background: linear-gradient(270deg, var(--color-zinc-400), #fff 40%);
+    background-clip: text;
+    color: transparent;
+}
