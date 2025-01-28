@@ -34,6 +34,10 @@ Welcome to the Lyrics Syncer Tool! This web application helps you create [LRC](<
 
 We welcome contributions! If you have suggestions, bug reports, or features you'd like to see, please submit an issue or create a pull request.
 
+## Acknowledgements
+
+Thanks to [lrcgenerator.com](http://lrcgenerator.com/) and the [Musicolet Music Payer](https://play.google.com/store/apps/details?id=in.krosbits.musicolet) for inspiring the idea behind this project.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
