@@ -240,17 +240,16 @@ function createItemElement(line) {
         updateSelection(target.parentNode)
     })
 
+    // Regex to detect Hebrew or Arabic characters
+    const isRTL = /^[\u0591-\u07FF\uFB1D-\uFEFC]/.test(line)
     if (isWordByWord) {
         if (line.trim() == '') return
         splitLineIntoWords(line, lineEl)
     } else {
         lineEl.innerText = line
     }
-    if (isDuet) {
-        item.dataset.vocalist = 1
-        lineEl.classList.add('text-start')
-    }
-    lineEl.classList.add('grow', 'text-lg')
+    if (isDuet) item.dataset.vocalist = 1
+    lineEl.classList.add('grow', 'text-lg', 'text-start', isRTL ? 'rtl' : 'ltr')
 
     item.appendChild(timestamp)
     item.appendChild(lineEl)

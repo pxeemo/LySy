@@ -1,7 +1,7 @@
-/*! tailwindcss v4.0.0 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.3 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
-  :root {
+  :root, :host {
     --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -578,6 +578,9 @@
   .m-1 {
     margin: calc(var(--spacing) * 1);
   }
+  .m-auto {
+    margin: auto;
+  }
   .container {
     margin-inline: auto;
   }
@@ -866,14 +869,9 @@
       background-color: var(--color-orange-400);
     }
   }
-  .backdrop\:bg-gray-950 {
+  .backdrop\:bg-black\/80 {
     &::backdrop {
-      background-color: var(--color-gray-950);
-    }
-  }
-  .backdrop\:opacity-85 {
-    &::backdrop {
-      opacity: 85%;
+      background-color: color-mix(in oklab, var(--color-black) 80%, transparent);
     }
   }
   .before\:absolute {
@@ -1014,10 +1012,26 @@
     }
   }
 }
-.text-unfinished {
-  background: linear-gradient(270deg, var(--color-zinc-400), #fff 40%);
-  background-clip: text;
-  color: transparent;
+@layer base {
+  button {
+    cursor: pointer;
+  }
+}
+.ltr {
+  direction: ltr;
+  .text-unfinished {
+    background: linear-gradient( 270deg, var(--color-zinc-400), var(--color-zinc-100) 40% );
+    background-clip: text;
+    color: transparent;
+  }
+}
+.rtl {
+  direction: rtl;
+  .text-unfinished {
+    background: linear-gradient( 90deg, var(--color-zinc-400), var(--color-zinc-100) 40% );
+    background-clip: text;
+    color: transparent;
+  }
 }
 @keyframes spin {
   to {

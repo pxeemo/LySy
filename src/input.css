@@ -4,8 +4,33 @@
     margin-inline: auto;
 }
 
-.text-unfinished {
-    background: linear-gradient(270deg, var(--color-zinc-400), #fff 40%);
-    background-clip: text;
-    color: transparent;
+@layer base {
+    button {
+        cursor: pointer;
+    }
+}
+
+.ltr {
+    direction: ltr;
+    .text-unfinished {
+        background: linear-gradient(
+            270deg,
+            var(--color-zinc-400),
+            var(--color-zinc-100) 40%
+        );
+        background-clip: text;
+        color: transparent;
+    }
+}
+.rtl {
+    direction: rtl;
+    .text-unfinished {
+        background: linear-gradient(
+            90deg,
+            var(--color-zinc-400),
+            var(--color-zinc-100) 40%
+        );
+        background-clip: text;
+        color: transparent;
+    }
 }
