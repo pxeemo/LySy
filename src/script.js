@@ -368,35 +368,32 @@ function clearLine(item) {
 function prevItem() {
     if (currentItemIndex >= 0) {
         const item = itemsList[currentItemIndex]
-        const prevItemElement =
-            currentItemIndex != 0 ? itemsList[currentItemIndex - 1] : undefined
         if (isWordByWord) {
             if (currentWordIndex == -1 && currentItemIndex != 0) {
+                const prevItemElement = itemsList[currentItemIndex - 1]
                 updateSelection(item, false, false)
                 currentItemIndex--
                 updateSelection(prevItemElement, false, true)
                 scrollToItem(prevItemElement)
-                audio.currentTime = prevItemElement.dataset.time
+                audio.currentTime = Math.max(
+                    0,
+                    prevItemElement.dataset.time - 1.5,
+                )
             } else {
                 updateSelection(item, false, true)
-                audio.currentTime =
-                    currentItemIndex != 0
-                        ? prevItemElement.dataset.time
-                        : Math.max(0, audio.currentTime - 4)
+                audio.currentTime = Math.max(0, item.dataset.time - 1.5)
             }
             currentWordIndex = -1
             clearLine(itemsList[currentItemIndex])
         } else {
-            updateSelection(itemsList[currentItemIndex], false, false)
-            clearLine(itemsList[currentItemIndex])
+            const prevItemElement = itemsList[currentItemIndex - 1]
             currentItemIndex--
-            if (currentItemIndex == -1) {
-                scrollToItem(itemsList[0])
-                audio.currentTime = Math.max(0, audio.currentTime - 4)
-            } else {
-                scrollToItem(prevItemElement)
-                audio.currentTime = prevItemElement.dataset.time
-            }
+            scrollToItem(
+                currentItemIndex == -1 ? itemsList[0] : prevItemElement,
+            )
+            audio.currentTime = Math.max(0, item.dataset.time - 1.5)
+            updateSelection(item, false, false)
+            clearLine(item)
         }
     }
 }
