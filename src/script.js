@@ -68,12 +68,12 @@ function togglePlayPause() {
 
 const backwardBtn = document.getElementById('backwardBtn')
 backwardBtn.addEventListener('click', () => {
-    audio.currentTime -= 6
+    audio.currentTime -= 6 * audio.playbackRate
 })
 
 const forwardBtn = document.getElementById('forwardBtn')
 forwardBtn.addEventListener('click', () => {
-    audio.currentTime += 5
+    audio.currentTime += 5 * audio.playbackRate
 })
 
 function formatTime(seconds, lrcformat = true) {
