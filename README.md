@@ -3,7 +3,6 @@
 Welcome to the Lyrics Syncer Tool! This web application helps you create [LRC](<https://en.m.wikipedia.org/wiki/LRC_(file_format)>) files easily and quickly. With our user-friendly interface, you can add timestamps to your lyrics and download the final LRC file hassle-free.
 
 ## Features
-
 - [x] Easy back and forth movements
 - [x] Edit and remove items
 - [x] Responsive design
@@ -21,9 +20,9 @@ Welcome to the Lyrics Syncer Tool! This web application helps you create [LRC](<
 ## How to Use
 
 1. **Input Lyrics**: Paste your song lyrics into the text area and press the "Load" button.
-2. **Add Timestamps**: Press the "Next" button (or `Space`) when the line starts to add timestamps to it.
+2. **Add Timestamps**: Press the "Next" button (or <kbd>Space</kbd>) when the line starts to add timestamps to it.
 
-    You can also press "Back" button (or `Shift+Space`) to undo the last timestamp if you pressed next by mistake.
+    You can also press "Back" button (or <kbd>Shift+Space</kbd>) to undo the last timestamp if you pressed next by mistake.
 
 3. **Download**: Click the "Save" button to save your file.
 4. **Use**: Put the downloaded file under the same directory with the same name as your music file to show up on supported music players _(such as [Gramophone](https://github.com/AkaneTan/Gramophone))_
