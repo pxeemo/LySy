@@ -8,6 +8,7 @@
         <link rel="stylesheet" href="./slider.css" />
         <link rel="icon" href="./assets/favicon.svg" />
     </head>
+
     <body class="bg-zinc-900 text-zinc-200 pb-36">
         <audio id="audio"></audio>
         <div
@@ -155,14 +156,16 @@
             id="editItemModal"
         >
             <form method="dialog">
-                <textarea
-                    rows="1"
-                    id="editItemInput"
-                    type="text"
-                    name="editItemInput"
-                    dir="auto"
-                    class="w-full bg-zinc-900 text-zinc-100 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
-                ></textarea>
+                <div id="editItemContent" class="text-zinc-100">
+                    <textarea
+                        rows="1"
+                        id="editItemInput"
+                        type="text"
+                        name="editItemInput"
+                        dir="auto"
+                        class="w-full bg-zinc-900 text-zinc-100 disabled:text-zinc-400 disabled:bg-zinc-800 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+                    ></textarea>
+                </div>
                 <div class="flex flex-col items-start">
                     <div class="m-1 px-2 text-zinc-300 rounded-full">
                         <input

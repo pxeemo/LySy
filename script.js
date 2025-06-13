@@ -86,6 +86,18 @@ function formatTime(seconds, lrcformat = true) {
     }
 }
 
+function deformatTime(timeText) {
+    console.log(timeText)
+    let time = 0
+    timeText
+        .split(':')
+        .reverse()
+        .forEach((t, i) => {
+            time += parseFloat(t) * 60 ** i
+        })
+    return time
+}
+
 // Update seek bar as the audio plays
 audio.addEventListener('timeupdate', () => {
     seekBar.value = (audio.currentTime / audio.duration) * 100
@@ -112,6 +124,7 @@ const nextItemBtn = document.getElementById('nextItemBtn')
 const prevItemBtn = document.getElementById('prevItemBtn')
 
 const editItemModal = document.getElementById('editItemModal')
+const editItemContent = document.getElementById('editItemContent')
 const editItemInput = document.getElementById('editItemInput')
 const editItemCancel = document.getElementById('editItemCancel')
 const editItemRemove = document.getElementById('editItemRemove')
@@ -182,6 +195,67 @@ function splitLineIntoWords(line, lineEl) {
     })
 }
 
+function createInputElement(type = null) {
+    const inputEl = document.createElement('input')
+    inputEl.classList.add(
+        'h-8',
+        'outline-none',
+        'rounded-md',
+        'p-1',
+        'transition-all',
+        'ease-in-out',
+        'duration-300',
+        'border-2',
+        'focus:border-orange-400',
+    )
+    if (type != null) inputEl.dataset.type = type
+    return inputEl
+}
+
+function createTimedWordEditor(wordEl) {
+    const row = document.createElement('div')
+    row.classList.add('w-full', 'flex', 'gap-2', 'my-2', 'mx-1')
+
+    const beginTimeEl = createInputElement()
+    beginTimeEl.classList.add(
+        'w-22',
+        'bg-zinc-800',
+        'text-zinc-100',
+        'border-zinc-800',
+        'text-center',
+        'text-sm',
+    )
+    beginTimeEl.value = formatTime(wordEl.dataset.beginTime)
+    row.appendChild(beginTimeEl)
+
+    const textEl = createInputElement(wordEl.dataset.type)
+    textEl.value = wordEl.innerText
+    textEl.setAttribute('dir', 'auto')
+    textEl.dataset.type = wordEl.dataset.type
+    textEl.classList.add(
+        'grow',
+        'bg-zinc-900',
+        'text-zinc-100',
+        'border-zinc-700',
+        textEl.dataset.type == 'word' ? 'text-start' : 'text-end',
+    )
+    row.appendChild(textEl)
+
+    const endTimeEl = createInputElement()
+    endTimeEl.classList.add(
+        'w-22',
+        'bg-zinc-800',
+        'text-zinc-100',
+        'border-zinc-800',
+        'text-center',
+        'text-sm',
+    )
+    endTimeEl.value = formatTime(wordEl.dataset.endTime)
+    row.appendChild(endTimeEl)
+
+    return row
+}
+
 function createItemElement(line) {
     const item = document.createElement('li')
     const timestamp = document.createElement('div')
@@ -217,7 +291,37 @@ function createItemElement(line) {
         e.stopPropagation()
         const target = e.currentTarget.previousElementSibling
         const index = itemsList.indexOf(e.currentTarget.parentNode)
-        editItemInput.value = target.innerText
+        let text = ''
+        editItemContent.innerHTML = ''
+        if (isWordByWord) {
+            editItemContent.appendChild(editItemInput)
+            const isTimed =
+                typeof target.lastElementChild.dataset.endTime != 'undefined'
+            Array.from(target.children).forEach((e) => {
+                text += e.innerText
+                text += e.dataset.type == 'word' ? ' ' : '<>'
+                if (isTimed) {
+                    const row = createTimedWordEditor(e)
+                    editItemContent.appendChild(row)
+                }
+            })
+            editItemInput.value = text.trimEnd()
+        } else {
+            if (typeof target.parentElement.dataset.time != 'undefined') {
+                const timeEl = createInputElement()
+                timeEl.classList.add(
+                    'w-24',
+                    'text-center',
+                    'bg-zinc-800',
+                    'text-zinc-100',
+                    'border-zinc-800',
+                )
+                timeEl.value = formatTime(target.parentElement.dataset.time)
+                editItemContent.appendChild(timeEl)
+            }
+            editItemInput.value = target.innerText
+            editItemContent.appendChild(editItemInput)
+        }
         markAsBg.checked = target.parentElement.dataset.type == 'bg'
         addItemAboveBtn.disabled = index <= currentItemIndex ? true : false
         addItemBelowBtn.disabled = index < currentItemIndex ? true : false
@@ -483,9 +587,24 @@ editItemRemove.addEventListener('click', () => {
 editItemDone.addEventListener('click', () => {
     const index = editItemIndex.value
     if (isWordByWord) {
-        itemsList[index].children[1].innerHTML = ''
-        splitLineIntoWords(editItemInput.value, itemsList[index].children[1])
-        currentWordIndex = -1
+        if (editItemInput.disabled) {
+            Array.from(editItemContent.children).forEach((row, i) => {
+                if (row.tagName == 'TEXTAREA') return
+                const wordEl = itemsList[index].children[1].children[i - 1]
+                wordEl.innerText = row.children[1].value
+                wordEl.dataset.beginTime = deformatTime(row.children[0].value)
+                wordEl.dataset.endTime = deformatTime(row.children[2].value)
+            })
+            itemsList[index].dataset.time =
+                itemsList[index].children[1].children[0].dataset.beginTime
+        } else {
+            itemsList[index].children[1].innerHTML = ''
+            splitLineIntoWords(
+                editItemInput.value,
+                itemsList[index].children[1],
+            )
+            currentWordIndex = -1
+        }
     } else {
         itemsList[index].children[1].innerText = editItemInput.value
     }
