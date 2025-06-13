@@ -10,6 +10,7 @@ const switchVocalistBtn = document.getElementById('switchVocalistBtn')
 const wordEndBtn = document.getElementById('wordEndBtn')
 let isWordByWord = wordByWordCheckbox.checked
 let isDuet = duetCheckbox.checked
+const rtlCharsPattern = /[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/
 
 wordByWordCheckbox.addEventListener('change', (e) => {
     isWordByWord = e.target.checked
@@ -69,11 +70,13 @@ function togglePlayPause() {
 const backwardBtn = document.getElementById('backwardBtn')
 backwardBtn.addEventListener('click', () => {
     audio.currentTime -= 6 * audio.playbackRate
+    manager.refresh()
 })
 
 const forwardBtn = document.getElementById('forwardBtn')
 forwardBtn.addEventListener('click', () => {
     audio.currentTime += 5 * audio.playbackRate
+    manager.refresh()
 })
 
 function formatTime(seconds, lrcformat = true) {
@@ -87,7 +90,6 @@ function formatTime(seconds, lrcformat = true) {
 }
 
 function deformatTime(timeText) {
-    console.log(timeText)
     let time = 0
     timeText
         .split(':')
@@ -112,10 +114,107 @@ audio.addEventListener('loadedmetadata', () => {
 // Seek when seek bar is changed
 seekBar.addEventListener('input', () => {
     audio.currentTime = (seekBar.value / 100) * audio.duration
+    manager.refresh()
 })
 
 // Play/pause button click event
 playPauseBtn.addEventListener('click', togglePlayPause)
+
+class AnimationManager {
+    constructor() {
+        this.animations = new Map() // Tracks all animations
+        this.isPaused = true
+    }
+
+    // Add element with custom timing
+    addElement(element, delay, duration = 0.5) {
+        // Store animation data
+        this.animations.set(element, {
+            delay: delay,
+            duration: duration,
+            remainingDelay: delay,
+            isPending: false,
+        })
+
+        // set duration css
+        element.style.animationDuration = `${duration * 1000}ms`
+    }
+
+    setAnimationTimeout(anim, element) {
+        anim.startTimeout = setTimeout(() => {
+            if (element.nodeName == 'LI') {
+                element.classList.remove('text-zinc-400')
+                element.classList.add('text-zinc-100')
+                if (anim.remainingDelay >= 0)
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                    })
+            } else if (element.nodeName == 'SPAN') {
+                if (anim.remainingDelay >= 0) {
+                    element.style.animationName = 'word-gradient'
+                    element.style.animationPlayState = 'running'
+                }
+                element.classList.add('actived')
+            }
+            anim.isPending = false
+        }, anim.remainingDelay * 1000)
+    }
+
+    clearCompletion(anim, element, currentTime) {
+        anim.isPending = true
+        if (element.nodeName == 'LI' && currentTime < anim.delay) {
+            element.classList.remove('text-zinc-100')
+            element.classList.add('text-zinc-400')
+        } else if (
+            element.nodeName == 'SPAN' &&
+            currentTime < anim.delay + anim.duration
+        ) {
+            element.classList.remove('actived')
+            element.style.animationName = ''
+        }
+    }
+
+    play() {
+        if (!this.isPaused) return
+
+        this.animations.forEach((anim, element) => {
+            const currentTime = audio.currentTime
+            anim.remainingDelay = anim.delay - currentTime
+
+            this.clearCompletion(anim, element, currentTime)
+            this.setAnimationTimeout(anim, element)
+        })
+        this.isPaused = false
+    }
+
+    pause() {
+        if (this.isPaused) return
+        this.isPaused = true
+
+        this.animations.forEach((anim, element) => {
+            // Freeze animation
+            element.style.animationPlayState = 'paused'
+
+            if (anim.isPending) clearTimeout(anim.startTimeout)
+        })
+    }
+
+    refresh() {
+        if (this.isPaused) return
+        this.animations.forEach((anim, element) => {
+            if (anim.isPending) clearTimeout(anim.startTimeout)
+
+            const currentTime = audio.currentTime
+            anim.remainingDelay = anim.delay - currentTime
+
+            this.clearCompletion(anim, element, currentTime)
+            this.setAnimationTimeout(anim, element)
+        })
+    }
+}
+
+const manager = new AnimationManager()
 
 const lyricInput = document.getElementById('lyricInput')
 const parseBtn = document.getElementById('plainInputParser')
@@ -185,7 +284,9 @@ function splitLineIntoWords(line, lineEl) {
                 }
                 const partEl = document.createElement('span')
                 partEl.innerText = part
-                partEl.classList.add('text-zinc-400')
+                partEl.classList.add('word')
+                if (rtlCharsPattern.test(part)) partEl.classList.add('rtl')
+
                 partEl.dataset.type = 'part'
                 lineEl.appendChild(partEl)
             }
@@ -261,7 +362,7 @@ function createItemElement(line) {
     const timestamp = document.createElement('div')
     const updateTimeIcon = document.createElement('img')
     const timestampText = document.createElement('span')
-    const lineEl = document.createElement('div')
+    const lineEl = document.createElement('p')
     const editIcon = document.createElement('img')
     item.dataset.type = 'normal'
     item.classList.add(
@@ -311,6 +412,8 @@ function createItemElement(line) {
                 const timeEl = createInputElement()
                 timeEl.classList.add(
                     'w-24',
+                    'my-2',
+                    'mx-1',
                     'text-center',
                     'bg-zinc-800',
                     'text-zinc-100',
@@ -344,8 +447,6 @@ function createItemElement(line) {
         updateSelection(target.parentNode)
     })
 
-    // Regex to detect Hebrew or Arabic characters
-    const isRTL = /^[\u0591-\u07FF\uFB1D-\uFEFC]/.test(line)
     if (isWordByWord) {
         if (line.trim() == '') return
         splitLineIntoWords(line, lineEl)
@@ -353,7 +454,8 @@ function createItemElement(line) {
         lineEl.innerText = line
     }
     if (isDuet) item.dataset.vocalist = 1
-    lineEl.classList.add('grow', 'text-lg', 'text-start', isRTL ? 'rtl' : 'ltr')
+    lineEl.classList.add('grow', 'text-lg', 'text-start', 'font-semibold')
+    if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
 
     item.appendChild(timestamp)
     item.appendChild(lineEl)
@@ -392,6 +494,7 @@ function timestampItem(item, currentTime) {
     item.addEventListener('click', () => {
         if (typeof item.dataset.time != 'undefined') {
             audio.currentTime = item.dataset.time
+            manager.refresh()
         }
     })
 }
@@ -402,8 +505,6 @@ wordEndBtn.addEventListener('click', () => {
         itemsList[currentItemIndex]?.children[1]?.children[currentWordIndex]
     if (typeof word == 'undefined') return
     word.dataset.endTime = currentTime
-    word.classList.remove('text-unfinished')
-    word.classList.add('text-zinc-100')
 })
 
 function next() {
@@ -420,6 +521,7 @@ function next() {
         currentWordIndex++
 
         if (currentWordIndex >= line.childElementCount) {
+            // end of line
             updateSelection(item, true, false)
             if (currentItemIndex < itemsList.length - 1) {
                 currentWordIndex = -1
@@ -427,14 +529,12 @@ function next() {
                 updateSelection(itemsList[currentItemIndex], true, true)
                 scrollToItem(itemsList[currentItemIndex])
             }
+            manager.addElement(item, item.dataset.time)
         } else {
             const word = line.children[currentWordIndex]
             word.dataset.beginTime = currentTime
-            word.classList.remove('text-zinc-400')
-            word.classList.add('text-unfinished')
+            word.classList.add('actived')
         }
-        prevWord?.classList.remove('text-unfinished')
-        prevWord?.classList.add('text-zinc-100')
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
         }
@@ -443,6 +543,11 @@ function next() {
             typeof prevWord.dataset.endTime == 'undefined'
         ) {
             prevWord.dataset.endTime = currentTime
+            manager.addElement(
+                prevWord,
+                Number(prevWord.dataset.beginTime),
+                currentTime - Number(prevWord.dataset.beginTime),
+            )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
         currentItemIndex++
@@ -450,6 +555,7 @@ function next() {
         updateSelection(item, true, false)
         scrollToItem(item)
         timestampItem(item, currentTime)
+        manager.addElement(item, item.dataset.time)
     }
 }
 
@@ -462,8 +568,7 @@ function clearLine(item) {
             if (typeof word != 'undefined' && word.dataset.beginTime) {
                 delete word.dataset.beginTime
                 delete word.dataset.endTime
-                word.classList.remove('text-zinc-100', 'text-unfinished')
-                word.classList.add('text-zinc-400')
+                word.classList.remove('actived')
             }
         }
     }
@@ -589,7 +694,7 @@ editItemDone.addEventListener('click', () => {
     if (isWordByWord) {
         if (editItemInput.disabled) {
             Array.from(editItemContent.children).forEach((row, i) => {
-                if (row.tagName == 'TEXTAREA') return
+                if (row.nodeName == 'TEXTAREA') return
                 const wordEl = itemsList[index].children[1].children[i - 1]
                 wordEl.innerText = row.children[1].value
                 wordEl.dataset.beginTime = deformatTime(row.children[0].value)
@@ -673,3 +778,6 @@ dlFileBtn.addEventListener('click', () => {
     }
     downloadTextFile(filename, text)
 })
+
+audio.addEventListener('play', () => manager.play())
+audio.addEventListener('pause', () => manager.pause())
