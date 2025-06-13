@@ -16,7 +16,6 @@
     --color-zinc-300: oklch(0.871 0.006 286.286);
     --color-zinc-400: oklch(0.705 0.015 286.067);
     --color-zinc-500: oklch(0.552 0.016 285.938);
-    --color-zinc-600: oklch(0.442 0.017 285.786);
     --color-zinc-700: oklch(0.37 0.013 285.805);
     --color-zinc-800: oklch(0.274 0.006 286.033);
     --color-zinc-900: oklch(0.21 0.006 285.885);
@@ -29,7 +28,9 @@
     --text-sm--line-height: calc(1.25 / 0.875);
     --text-lg: 1.125rem;
     --text-lg--line-height: calc(1.75 / 1.125);
+    --font-weight-medium: 500;
     --font-weight-semibold: 600;
+    --font-weight-bold: 700;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
@@ -274,6 +275,9 @@
   }
   .my-2 {
     margin-block: calc(var(--spacing) * 2);
+  }
+  .mb-2 {
+    margin-bottom: calc(var(--spacing) * 2);
   }
   .block {
     display: block;
@@ -721,20 +725,37 @@
     cursor: pointer;
   }
 }
-.ltr {
-  direction: ltr;
-  .text-unfinished {
-    background: linear-gradient( 270deg, var(--color-zinc-400), var(--color-zinc-100) 40% );
-    background-clip: text;
-    color: transparent;
-  }
+:root {
+  --gradient-shade: 8px;
 }
-.rtl {
+.word {
+  background-image: linear-gradient(270deg, var(--color-zinc-400) calc(50% - var(--gradient-shade) / 2), var(--color-zinc-100) calc(50% + var(--gradient-shade) / 2));
+  background-size: 200% 100%;
+  background-position: right;
+  background-clip: text;
+  color: transparent;
+  animation-name: '';
+  animation-fill-mode: forwards;
+  animation-play-state: paused;
+}
+.word.actived {
+  background-position: left;
+}
+.word.rtl {
   direction: rtl;
-  .text-unfinished {
-    background: linear-gradient( 90deg, var(--color-zinc-400), var(--color-zinc-100) 40% );
-    background-clip: text;
-    color: transparent;
+  background-image: linear-gradient(90deg, var(--color-zinc-400) calc(50% - var(--gradient-shade) / 2), var(--color-zinc-100) calc(50% + var(--gradient-shade) / 2));
+  background-position: left;
+  animation-direction: reverse;
+}
+.word.rtl.actived {
+  background-position: right;
+}
+@keyframes word-gradient {
+  from {
+    background-position: right;
+  }
+  to {
+    background-position: left;
   }
 }
 @property --tw-rotate-x {
