@@ -135,9 +135,14 @@ class AnimationManager {
             remainingDelay: delay - audio.currentTime,
             isPending: false,
         })
-
-        // set duration css
         element.style.animationDuration = `${duration * 1000}ms`
+    }
+
+    removeElement(element) {
+        const anim = this.animations.get(element)
+        if (typeof anim == 'undefined') return
+        if (anim.isPending) clearTimeout(anim.startTimeout)
+        this.animations.delete(element)
     }
 
     setAnimationTimeout(anim, element) {
@@ -177,11 +182,11 @@ class AnimationManager {
 
     play() {
         if (!this.isPaused) return
-
+        const playbackSpeed = 1 / audio.playbackRate
+        const currentTime = audio.currentTime
         this.animations.forEach((anim, element) => {
-            const currentTime = audio.currentTime
-            anim.remainingDelay = anim.delay - currentTime
-
+            anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
+            element.style.animationDuration = `${anim.duration * 1000 * playbackSpeed}ms`
             this.clearCompletion(anim, element, currentTime)
             this.setAnimationTimeout(anim, element)
         })
@@ -191,7 +196,6 @@ class AnimationManager {
     pause() {
         if (this.isPaused) return
         this.isPaused = true
-
         this.animations.forEach((anim, element) => {
             // Freeze animation
             element.style.animationPlayState = 'paused'
@@ -202,12 +206,12 @@ class AnimationManager {
 
     refresh() {
         if (this.isPaused) return
+        const playbackSpeed = 1 / audio.playbackRate
+        const currentTime = audio.currentTime
         this.animations.forEach((anim, element) => {
             if (anim.isPending) clearTimeout(anim.startTimeout)
-
-            const currentTime = audio.currentTime
-            anim.remainingDelay = anim.delay - currentTime
-
+            anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
+            element.style.animationDuration = `${anim.duration * 1000 * playbackSpeed}ms`
             this.clearCompletion(anim, element, currentTime)
             this.setAnimationTimeout(anim, element)
         })
@@ -380,7 +384,13 @@ function createItemElement(line) {
         splitLineIntoWords(line, lineEl)
     } else lineEl.innerText = line
     if (isDuet) item.dataset.vocalist = 1
-    lineEl.classList.add('grow', 'text-xl', 'text-start', 'font-semibold')
+    lineEl.classList.add(
+        'grow',
+        'text-xl',
+        'text-start',
+        'font-semibold',
+        'transition-all',
+    )
     if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
 
     editIcon.classList.add('mx-2', 'cursor-pointer')
@@ -530,46 +540,49 @@ function next() {
 }
 
 function clearLine(item) {
+    manager.removeElement(item)
     delete item.dataset.time
-    item.firstChild.lastChild.innerText = '--:--.---'
     if (isWordByWord) {
-        for (let i = 0; i <= item.children[0].childElementCount; i++) {
-            const word = item.children[0].children[i]
-            if (typeof word != 'undefined' && word.dataset.beginTime) {
-                delete word.dataset.beginTime
-                delete word.dataset.endTime
-                word.classList.remove('actived')
-            }
-        }
+        Array.from(item.children[0].children).forEach((wordEl) => {
+            if (typeof wordEl?.dataset?.beginTime == 'undefined') return
+            if (typeof wordEl?.dataset?.endTime != 'undefined')
+                manager.removeElement(wordEl)
+            delete wordEl.dataset.beginTime
+            delete wordEl.dataset.endTime
+            wordEl.classList.remove('actived')
+            wordEl.style.animationName = ''
+        })
     }
 }
 
 function prevItem() {
-    if (currentItemIndex >= 0) {
-        const item = itemsList[currentItemIndex]
-        if (isWordByWord) {
-            if (currentWordIndex == -1 && currentItemIndex != 0) {
-                const prevItem = itemsList[currentItemIndex - 1]
-                updateSelection(item, false, false)
-                currentItemIndex--
-                updateSelection(prevItem, false, true)
-                scrollToItem(prevItem)
-                audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
-            } else {
-                updateSelection(item, false, true)
-                audio.currentTime = Math.max(0, item.dataset.time - 1.5)
-            }
-            currentWordIndex = -1
-            clearLine(itemsList[currentItemIndex])
-        } else {
+    if (currentItemIndex < 0) return
+    const item = itemsList[currentItemIndex]
+    if (isWordByWord) {
+        if (currentWordIndex == -1 && currentItemIndex != 0) {
             const prevItem = itemsList[currentItemIndex - 1]
-            currentItemIndex--
-            scrollToItem(currentItemIndex == -1 ? itemsList[0] : prevItem)
-            audio.currentTime = Math.max(0, item.dataset.time - 1.5)
             updateSelection(item, false, false)
-            clearLine(item)
+            currentItemIndex--
+            updateSelection(prevItem, false, true)
+            scrollToItem(prevItem)
+            audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
+            clearLine(prevItem)
+        } else if (currentItemIndex != 0) {
+            // we are in the middle of line
+            updateSelection(item, false, true)
+            audio.currentTime = Math.max(0, item.dataset.time - 1.5)
         }
+        currentWordIndex = -1
+        clearLine(item)
+    } else {
+        const prevItem = itemsList[currentItemIndex - 1]
+        currentItemIndex--
+        scrollToItem(currentItemIndex == -1 ? itemsList[0] : prevItem)
+        audio.currentTime = Math.max(0, item.dataset.time - 1.5)
+        updateSelection(item, false, false)
+        clearLine(item)
     }
+    manager.refresh()
 }
 
 // Add keyboard event listener for spacebar
@@ -620,6 +633,7 @@ switchVocalistBtn.addEventListener('click', () => {
 
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
+    manager.refresh()
 })
 
 // editItemModal.addEventListener('close', (e) => console.log(e))
@@ -661,6 +675,7 @@ editItemDone.addEventListener('click', () => {
             Array.from(editItemContent.children).forEach((row, i) => {
                 if (row.nodeName == 'TEXTAREA') return
                 const wordEl = itemsList[index].children[0].children[i - 1]
+                manager.removeElement(wordEl)
                 const beginTime = deformatTime(row.children[0].value)
                 const endTime = deformatTime(row.children[2].value)
                 wordEl.innerText = row.children[1].value
@@ -679,6 +694,7 @@ editItemDone.addEventListener('click', () => {
             currentWordIndex = -1
         }
     } else {
+        manager.removeElement(itemsList[index])
         itemsList[index].children[0].innerText = editItemInput.value
         const time = deformatTime(editItemContent.children[0].value)
         itemsList[index].dataset.time = time
@@ -686,16 +702,16 @@ editItemDone.addEventListener('click', () => {
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
-        itemsList[index].children[0].classList.remove('text-lg')
+        itemsList[index].children[0].classList.remove('text-xl')
         itemsList[index].children[0].classList.add('text-sm')
     } else {
         itemsList[index].dataset.type = 'normal'
         itemsList[index].children[0].classList.remove('text-sm')
-        itemsList[index].children[0].classList.add('text-lg')
+        itemsList[index].children[0].classList.add('text-xl')
     }
 })
 
-function downloadTextFile(filename, text) {
+function downloadFileRequest(filename, text) {
     const blob = new Blob([text])
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -717,6 +733,7 @@ dlFileBtn.addEventListener('click', () => {
                 text += `[${formatTime(time)}]`
                 if (isDuet) text += item.dataset.vocalist == 1 ? 'v1:' : 'v2:'
             } else {
+                // removes extra line break
                 text = text.slice(0, -1) + ' [bg:'
             }
 
@@ -747,7 +764,7 @@ dlFileBtn.addEventListener('click', () => {
         alert('You need to select an input file first')
         return
     }
-    downloadTextFile(filename, text)
+    downloadFileRequest(filename, text)
 })
 
 audio.addEventListener('play', () => manager.play())
