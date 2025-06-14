@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="./output.css" />
     <link rel="stylesheet" href="./slider.css" />
     <link rel="icon" href="./assets/favicon.svg" />
+    <script src="./script.js" defer></script>
 </head>
 
 <body class="bg-zinc-900 text-zinc-200 pb-36">
@@ -50,7 +51,7 @@
             id="lyricInput" rows="20" placeholder="Enter your lyric text here" required></textarea>
 
         <div class="w-2/3 my-2 mx-auto rounded-2xl overflow-clip">
-            <label class="flex p-2 my-0.5 bg-zinc-800 rounded-md cursor-pointer justify-between" for="isWordByWord">
+            <label class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer justify-between" for="isWordByWord">
                 <p class="ps-2 text-lg">Sync word-by-word</p>
                 <input class="hidden peer" type="checkbox" id="isWordByWord" name="isWordByWord" />
                 <label
@@ -72,7 +73,7 @@
     </div>
 
     <div class="container container-md px-1 py-2 text-center hidden" id="syncer">
-        <ul class="w-full text-start" id="lyricList"></ul>
+        <ul class="w-full text-start rounded-2xl overflow-clip" id="lyricList"></ul>
 
         <button class="h-8 bg-orange-400 text-black rounded-full px-5 my-2" id="dlFile">
             Save
@@ -81,22 +82,22 @@
 
     <!-- Floating action buttons -->
     <button
-        class="fixed bottom-[-2rem] left-4 h-14 w-14 text-xs/3 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-xl transition-all"
+        class="fixed bottom-[-2rem] left-4 h-14 w-14 text-xs/3 font-medium bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
         id="switchVocalistBtn">
         Switch Vocalist
     </button>
     <button
-        class="fixed bottom-[-2rem] left-4 h-14 w-14 text-sm/4 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-xl transition-all"
+        class="fixed bottom-[-2rem] left-4 h-14 w-14 text-sm/4 font-medium bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
         id="wordEndBtn">
         Word End
     </button>
     <button
-        class="fixed bottom-[-2rem] right-4 h-14 w-14 bg-zinc-900 border-orange-400 border-2 text-orange-400 rounded-xl transition-all delay-150"
+        class="fixed bottom-[-2rem] right-4 h-14 w-14 font-medium bg-zinc-800 border-orange-400 border-1 shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150"
         id="prevItemBtn">
         Back
     </button>
     <button
-        class="fixed bottom-[-2rem] right-4 h-14 w-14 font-semibold bg-orange-400 text-black rounded-xl transition-all"
+        class="fixed bottom-[-2rem] right-4 h-14 w-14 font-bold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all"
         id="nextItemBtn">
         Next
     </button>
@@ -106,7 +107,7 @@
         <form method="dialog">
             <div id="editItemContent" class="text-zinc-100 mb-2">
                 <textarea rows="1" id="editItemInput" type="text" name="editItemInput" dir="auto"
-                    class="w-full bg-zinc-900 text-zinc-100 disabled:text-zinc-400 disabled:bg-zinc-800 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"></textarea>
+                    class="w-full min-w-80 bg-zinc-900 text-zinc-100 disabled:text-zinc-400 disabled:bg-zinc-800 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"></textarea>
             </div>
             <div class="flex flex-col items-start">
                 <div class="m-1 px-2 text-zinc-300 rounded-full">
@@ -137,7 +138,6 @@
             <input id="editItemIndex" type="hidden" name="editItemIndex" value="null" />
         </form>
     </dialog>
-    <script src="./script.js"></script>
 </body>
 
 </html>

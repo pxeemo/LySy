@@ -237,35 +237,31 @@ let itemsList = []
 let currentItemIndex = -1
 let currentWordIndex = -1
 
-// Function to update the timestamped item
+// Function to update the style of timestamped item
 function updateSelection(item, activate, whiteBorder) {
     if (activate) {
         item.classList.remove(
-            'border-zinc-700',
+            'bg-orange-900',
             'text-zinc-400',
-            'border-zinc-400',
+            'border-zinc-900',
         )
-        item.classList.add(
-            'text-zinc-100',
-            'cursor-pointer',
-            'border-orange-400',
-        )
+        item.classList.add('text-zinc-100', 'cursor-pointer', 'border-zinc-900')
         if (!whiteBorder) {
-            item.classList.add('bg-orange-900')
+            item.classList.add('bg-zinc-800')
         }
     } else {
         item.classList.remove(
-            'border-zinc-400',
-            'border-orange-400',
+            'border-zinc-900',
             'bg-orange-900',
+            'bg-zinc-800',
             'text-zinc-100',
             'cursor-pointer',
         )
         item.classList.add('border-zinc-700', 'text-zinc-400')
     }
     if (whiteBorder) {
-        item.classList.remove('border-orange-400', 'border-zinc-700')
-        item.classList.add('border-zinc-400')
+        item.classList.remove('border-orange-400', 'border-zinc-900')
+        item.classList.add('border-zinc-900', 'bg-orange-900')
     }
 }
 
@@ -335,6 +331,7 @@ function createTimedWordEditor(wordEl) {
     textEl.dataset.type = wordEl.dataset.type
     textEl.classList.add(
         'grow',
+        'min-w-28',
         'bg-zinc-900',
         'text-zinc-100',
         'border-zinc-700',
@@ -359,31 +356,32 @@ function createTimedWordEditor(wordEl) {
 
 function createItemElement(line) {
     const item = document.createElement('li')
-    const timestamp = document.createElement('div')
-    const updateTimeIcon = document.createElement('img')
-    const timestampText = document.createElement('span')
     const lineEl = document.createElement('p')
     const editIcon = document.createElement('img')
     item.dataset.type = 'normal'
     item.classList.add(
         'flex',
-        'px-1',
-        'gap-1',
-        'my-2',
-        'rounded-md',
+        'p-3',
+        'ps-4',
+        'gap-2',
         'text-zinc-400',
         'items-center',
-        'border-2',
-        'border-zinc-700',
+        'rounded',
+        'border-b-2',
+        'border-zinc-800',
         'duration-500',
         'ease-out',
         'transition-color',
         'scroll-mt-[20svh]',
     )
-    updateTimeIcon.classList.add('mx-auto')
-    updateTimeIcon.src = './assets/update.svg'
-    updateTimeIcon.width = 15
-    timestampText.innerText = '--:--.---'
+
+    if (isWordByWord) {
+        if (line.trim() == '') return
+        splitLineIntoWords(line, lineEl)
+    } else lineEl.innerText = line
+    if (isDuet) item.dataset.vocalist = 1
+    lineEl.classList.add('grow', 'text-xl', 'text-start', 'font-semibold')
+    if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
 
     editIcon.classList.add('mx-2', 'cursor-pointer')
     editIcon.src = './assets/edit.svg'
@@ -435,29 +433,6 @@ function createItemElement(line) {
         editItemInput.focus()
     })
 
-    timestamp.classList.add('w-18', 'items-center', 'text-center', 'text-xs')
-    timestamp.appendChild(updateTimeIcon)
-    timestamp.appendChild(timestampText)
-    timestamp.classList.add('font-mono', 'p-1', 'cursor-pointer')
-    timestamp.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const target = e.currentTarget
-        target.children[1].innerText = formatTime(audio.currentTime)
-        target, (parentNode.dataset.time = audio.currentTime)
-        updateSelection(target.parentNode)
-    })
-
-    if (isWordByWord) {
-        if (line.trim() == '') return
-        splitLineIntoWords(line, lineEl)
-    } else {
-        lineEl.innerText = line
-    }
-    if (isDuet) item.dataset.vocalist = 1
-    lineEl.classList.add('grow', 'text-lg', 'text-start', 'font-semibold')
-    if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
-
-    item.appendChild(timestamp)
     item.appendChild(lineEl)
     item.appendChild(editIcon)
 
@@ -489,13 +464,11 @@ function plainLyricParser() {
 parseBtn.addEventListener('click', plainLyricParser)
 
 function timestampItem(item, currentTime) {
-    item.firstChild.children[1].innerText = formatTime(currentTime)
     item.dataset.time = currentTime
     item.addEventListener('click', () => {
-        if (typeof item.dataset.time != 'undefined') {
-            audio.currentTime = item.dataset.time
-            manager.refresh()
-        }
+        if (typeof item.dataset.time == 'undefined') return
+        audio.currentTime = item.dataset.time
+        manager.refresh()
     })
 }
 
@@ -516,7 +489,7 @@ function next() {
             currentWordIndex = -1
         }
         const item = itemsList[currentItemIndex]
-        const line = item.children[1]
+        const line = item.children[0]
         const prevWord = line.children[currentWordIndex]
         currentWordIndex++
 
@@ -529,15 +502,13 @@ function next() {
                 updateSelection(itemsList[currentItemIndex], true, true)
                 scrollToItem(itemsList[currentItemIndex])
             }
-            manager.addElement(item, item.dataset.time)
+            manager.addElement(item, Number(item.dataset.time))
         } else {
             const word = line.children[currentWordIndex]
             word.dataset.beginTime = currentTime
             word.classList.add('actived')
         }
-        if (currentWordIndex == 0) {
-            timestampItem(item, currentTime)
-        }
+        if (currentWordIndex == 0) timestampItem(item, currentTime)
         if (typeof prevWord != 'undefined') {
             if (typeof prevWord.dataset.endTime == 'undefined')
                 prevWord.dataset.endTime = currentTime
@@ -548,12 +519,13 @@ function next() {
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
+        // is line-by-line
         currentItemIndex++
         const item = itemsList[currentItemIndex]
         updateSelection(item, true, false)
         scrollToItem(item)
         timestampItem(item, currentTime)
-        manager.addElement(item, item.dataset.time)
+        manager.addElement(item, Number(item.dataset.time))
     }
 }
 
@@ -561,8 +533,8 @@ function clearLine(item) {
     delete item.dataset.time
     item.firstChild.lastChild.innerText = '--:--.---'
     if (isWordByWord) {
-        for (let i = 0; i <= item.children[1].childElementCount; i++) {
-            const word = item.children[1].children[i]
+        for (let i = 0; i <= item.children[0].childElementCount; i++) {
+            const word = item.children[0].children[i]
             if (typeof word != 'undefined' && word.dataset.beginTime) {
                 delete word.dataset.beginTime
                 delete word.dataset.endTime
@@ -577,15 +549,12 @@ function prevItem() {
         const item = itemsList[currentItemIndex]
         if (isWordByWord) {
             if (currentWordIndex == -1 && currentItemIndex != 0) {
-                const prevItemElement = itemsList[currentItemIndex - 1]
+                const prevItem = itemsList[currentItemIndex - 1]
                 updateSelection(item, false, false)
                 currentItemIndex--
-                updateSelection(prevItemElement, false, true)
-                scrollToItem(prevItemElement)
-                audio.currentTime = Math.max(
-                    0,
-                    prevItemElement.dataset.time - 1.5,
-                )
+                updateSelection(prevItem, false, true)
+                scrollToItem(prevItem)
+                audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
             } else {
                 updateSelection(item, false, true)
                 audio.currentTime = Math.max(0, item.dataset.time - 1.5)
@@ -593,11 +562,9 @@ function prevItem() {
             currentWordIndex = -1
             clearLine(itemsList[currentItemIndex])
         } else {
-            const prevItemElement = itemsList[currentItemIndex - 1]
+            const prevItem = itemsList[currentItemIndex - 1]
             currentItemIndex--
-            scrollToItem(
-                currentItemIndex == -1 ? itemsList[0] : prevItemElement,
-            )
+            scrollToItem(currentItemIndex == -1 ? itemsList[0] : prevItem)
             audio.currentTime = Math.max(0, item.dataset.time - 1.5)
             updateSelection(item, false, false)
             clearLine(item)
@@ -632,12 +599,12 @@ prevItemBtn.addEventListener('click', prevItem)
 function switchVocalist(item) {
     if (item.dataset.vocalist == 1) {
         item.dataset.vocalist = 2
-        item.children[1].classList.remove('text-start')
-        item.children[1].classList.add('text-end')
+        item.children[0].classList.remove('text-start')
+        item.children[0].classList.add('text-end')
     } else {
         item.dataset.vocalist = 1
-        item.children[1].classList.remove('text-end')
-        item.children[1].classList.add('text-start')
+        item.children[0].classList.remove('text-end')
+        item.children[0].classList.add('text-start')
     }
 }
 switchVocalistBtn.addEventListener('click', () => {
@@ -693,7 +660,7 @@ editItemDone.addEventListener('click', () => {
         if (editItemInput.disabled) {
             Array.from(editItemContent.children).forEach((row, i) => {
                 if (row.nodeName == 'TEXTAREA') return
-                const wordEl = itemsList[index].children[1].children[i - 1]
+                const wordEl = itemsList[index].children[0].children[i - 1]
                 const beginTime = deformatTime(row.children[0].value)
                 const endTime = deformatTime(row.children[2].value)
                 wordEl.innerText = row.children[1].value
@@ -702,29 +669,29 @@ editItemDone.addEventListener('click', () => {
                 manager.addElement(wordEl, beginTime, endTime - beginTime)
             })
             itemsList[index].dataset.time =
-                itemsList[index].children[1].children[0].dataset.beginTime
+                itemsList[index].children[0].children[0].dataset.beginTime
         } else {
-            itemsList[index].children[1].innerHTML = ''
+            itemsList[index].children[0].innerHTML = ''
             splitLineIntoWords(
                 editItemInput.value,
-                itemsList[index].children[1],
+                itemsList[index].children[0],
             )
             currentWordIndex = -1
         }
     } else {
-        itemsList[index].children[1].innerText = editItemInput.value
+        itemsList[index].children[0].innerText = editItemInput.value
         const time = deformatTime(editItemContent.children[0].value)
         itemsList[index].dataset.time = time
         manager.addElement(itemsList[index], time)
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
-        itemsList[index].children[1].classList.remove('text-lg')
-        itemsList[index].children[1].classList.add('text-sm')
+        itemsList[index].children[0].classList.remove('text-lg')
+        itemsList[index].children[0].classList.add('text-sm')
     } else {
         itemsList[index].dataset.type = 'normal'
-        itemsList[index].children[1].classList.remove('text-sm')
-        itemsList[index].children[1].classList.add('text-lg')
+        itemsList[index].children[0].classList.remove('text-sm')
+        itemsList[index].children[0].classList.add('text-lg')
     }
 })
 
@@ -755,7 +722,7 @@ dlFileBtn.addEventListener('click', () => {
 
             if (isWordByWord) {
                 text += `<${formatTime(time)}>`
-                Array.from(item.children[1].children).forEach((word) => {
+                Array.from(item.children[0].children).forEach((word) => {
                     const beginTime = `<${formatTime(word.dataset.beginTime)}>`
                     text +=
                         `${text.endsWith(beginTime) ? '' : beginTime}` +
@@ -764,7 +731,7 @@ dlFileBtn.addEventListener('click', () => {
                         `<${formatTime(word.dataset.endTime)}>`
                 })
             } else {
-                text += `${item.children[1].innerText}`
+                text += `${item.children[0].innerText}`
             }
 
             if (item.dataset.type == 'bg') {

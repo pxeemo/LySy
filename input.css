@@ -10,7 +10,10 @@
     }
 }
 
-:root {
+@theme {
+    --color-orange-400: rgb(252, 121, 43);
+    --color-orange-900: rgb(107, 57, 27);
+
     --gradient-shade: 8px;
 }
 
