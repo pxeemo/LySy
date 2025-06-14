@@ -132,7 +132,7 @@ class AnimationManager {
         this.animations.set(element, {
             delay: delay,
             duration: duration,
-            remainingDelay: delay,
+            remainingDelay: delay - audio.currentTime,
             isPending: false,
         })
 
@@ -503,11 +503,8 @@ wordEndBtn.addEventListener('click', () => {
     const currentTime = audio.currentTime
     const wordEl =
         itemsList[currentItemIndex]?.children[1]?.children[currentWordIndex]
-    if (typeof wordEl.dataset.beginTime == 'undefined') return
-    const beginTime = Number(wordEl.dataset.beginTime)
-    if (typeof wordEl == 'undefined') return
+    if (typeof wordEl?.dataset?.beginTime == 'undefined') return
     wordEl.dataset.endTime = currentTime
-    manager.addElement(wordEl, beginTime, currentTime - beginTime)
 })
 
 function next() {
@@ -541,11 +538,9 @@ function next() {
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
         }
-        if (
-            typeof prevWord != 'undefined' &&
-            typeof prevWord.dataset.endTime == 'undefined'
-        ) {
-            prevWord.dataset.endTime = currentTime
+        if (typeof prevWord != 'undefined') {
+            if (typeof prevWord.dataset.endTime == 'undefined')
+                prevWord.dataset.endTime = currentTime
             manager.addElement(
                 prevWord,
                 Number(prevWord.dataset.beginTime),
@@ -699,9 +694,12 @@ editItemDone.addEventListener('click', () => {
             Array.from(editItemContent.children).forEach((row, i) => {
                 if (row.nodeName == 'TEXTAREA') return
                 const wordEl = itemsList[index].children[1].children[i - 1]
+                const beginTime = deformatTime(row.children[0].value)
+                const endTime = deformatTime(row.children[2].value)
                 wordEl.innerText = row.children[1].value
-                wordEl.dataset.beginTime = deformatTime(row.children[0].value)
-                wordEl.dataset.endTime = deformatTime(row.children[2].value)
+                wordEl.dataset.beginTime = beginTime
+                wordEl.dataset.endTime = endTime
+                manager.addElement(wordEl, beginTime, endTime - beginTime)
             })
             itemsList[index].dataset.time =
                 itemsList[index].children[1].children[0].dataset.beginTime
@@ -715,6 +713,9 @@ editItemDone.addEventListener('click', () => {
         }
     } else {
         itemsList[index].children[1].innerText = editItemInput.value
+        const time = deformatTime(editItemContent.children[0].value)
+        itemsList[index].dataset.time = time
+        manager.addElement(itemsList[index], time)
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
