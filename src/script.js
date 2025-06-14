@@ -501,10 +501,13 @@ function timestampItem(item, currentTime) {
 
 wordEndBtn.addEventListener('click', () => {
     const currentTime = audio.currentTime
-    const word =
+    const wordEl =
         itemsList[currentItemIndex]?.children[1]?.children[currentWordIndex]
-    if (typeof word == 'undefined') return
-    word.dataset.endTime = currentTime
+    if (typeof wordEl.dataset.beginTime == 'undefined') return
+    const beginTime = Number(wordEl.dataset.beginTime)
+    if (typeof wordEl == 'undefined') return
+    wordEl.dataset.endTime = currentTime
+    manager.addElement(wordEl, beginTime, currentTime - beginTime)
 })
 
 function next() {
