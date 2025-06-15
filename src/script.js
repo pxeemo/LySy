@@ -1,7 +1,10 @@
 const fileInput = document.getElementById('file')
+const removeSongBtn = document.getElementById('removeSongBtn')
 const audio = document.getElementById('audio')
 const playPauseBtn = document.getElementById('playPauseBtn')
 const seekBar = document.getElementById('seekBar')
+const miniPlayer = document.getElementById('player')
+const fileChooser = document.getElementById('fileChooser')
 const currentTimeDisplay = document.getElementById('currentTime')
 const durationDisplay = document.getElementById('duration')
 const wordByWordCheckbox = document.getElementById('isWordByWord')
@@ -23,20 +26,15 @@ wordByWordCheckbox.addEventListener('change', (e) => {
 
 function raiseFab(button, raise, step = 1) {
     button.classList.remove('bottom-[-2rem]', 'bottom-16', 'bottom-32')
-    if (raise) {
-        button.classList.add(step == 1 ? 'bottom-16' : 'bottom-32')
-    } else {
-        button.classList.add('bottom-[-2rem]')
-    }
+    if (raise) button.classList.add(step == 1 ? 'bottom-16' : 'bottom-32')
+    else button.classList.add('bottom-[-2rem]')
 }
 
 raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
 raiseFab(wordEndBtn, isWordByWord, 1)
 duetCheckbox.addEventListener('change', (e) => {
     isDuet = e.target.checked
-    if (itemsList.length != 0) {
-        plainLyricParser()
-    }
+    if (itemsList.length != 0) plainLyricParser()
     raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
     raiseFab(wordEndBtn, isWordByWord, 1)
 })
@@ -45,27 +43,21 @@ function sourceFile() {
     const file = fileInput.files[0]
     if (file) {
         const audioURL = URL.createObjectURL(file)
-        const player = document.getElementById('player')
-        const fileChooser = document.getElementById('fileChooser')
         audio.src = audioURL
         fileChooser.classList.add('hidden')
-        player.classList.remove('hidden')
-        player.classList.add('flex')
+        miniPlayer.classList.remove('hidden')
+        miniPlayer.classList.add('flex')
     }
 }
 
 sourceFile()
 fileInput.addEventListener('change', sourceFile)
-
-function togglePlayPause() {
-    if (audio.paused) {
-        audio.play()
-        playPauseBtn.firstElementChild.src = './assets/pause.svg'
-    } else {
-        audio.pause()
-        playPauseBtn.firstElementChild.src = './assets/play_arrow.svg'
-    }
-}
+removeSongBtn.addEventListener('click', () => {
+    miniPlayer.classList.remove('flex')
+    miniPlayer.classList.add('hidden')
+    fileChooser.classList.remove('hidden')
+    audio.pause()
+})
 
 const backwardBtn = document.getElementById('backwardBtn')
 backwardBtn.addEventListener('click', () => {
@@ -118,7 +110,9 @@ seekBar.addEventListener('input', () => {
 })
 
 // Play/pause button click event
-playPauseBtn.addEventListener('click', togglePlayPause)
+playPauseBtn.addEventListener('click', () => {
+    audio.paused ? audio.play() : audio.pause()
+})
 
 class AnimationManager {
     constructor() {
@@ -763,5 +757,13 @@ dlFileBtn.addEventListener('click', () => {
     downloadFileRequest(filename, text)
 })
 
-audio.addEventListener('play', () => manager.play())
-audio.addEventListener('pause', () => manager.pause())
+audio.addEventListener('play', () => {
+    manager.play()
+    playPauseBtn.firstElementChild.classList.add('hidden')
+    playPauseBtn.lastElementChild.classList.remove('hidden')
+})
+audio.addEventListener('pause', () => {
+    manager.pause()
+    playPauseBtn.firstElementChild.classList.remove('hidden')
+    playPauseBtn.lastElementChild.classList.add('hidden')
+})
