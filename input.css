@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Vazirmatn:wght@100..900&display=swap');
 @import 'tailwindcss';
 
 @utility container {
@@ -13,6 +14,8 @@
 @theme {
     --color-orange-400: rgb(252, 121, 43);
     --color-orange-900: rgb(107, 57, 27);
+
+    --font-vazir: Outfit, Vazirmatn, sans-serif;
 
     --gradient-shade: 8px;
 }
