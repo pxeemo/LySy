@@ -140,7 +140,6 @@ class AnimationManager {
 
     removeElement(element) {
         const anim = this.animations.get(element)
-        if (typeof anim == 'undefined') return
         if (anim.isPending) clearTimeout(anim.startTimeout)
         this.animations.delete(element)
     }
@@ -512,13 +511,15 @@ function next() {
                 updateSelection(itemsList[currentItemIndex], true, true)
                 scrollToItem(itemsList[currentItemIndex])
             }
-            manager.addElement(item, Number(item.dataset.time))
         } else {
             const word = line.children[currentWordIndex]
             word.dataset.beginTime = currentTime
             word.classList.add('actived')
         }
-        if (currentWordIndex == 0) timestampItem(item, currentTime)
+        if (currentWordIndex == 0) {
+            timestampItem(item, currentTime)
+            manager.addElement(item, Number(item.dataset.time))
+        }
         if (typeof prevWord != 'undefined') {
             if (typeof prevWord.dataset.endTime == 'undefined')
                 prevWord.dataset.endTime = currentTime
@@ -561,19 +562,18 @@ function prevItem() {
     if (isWordByWord) {
         if (currentWordIndex == -1 && currentItemIndex != 0) {
             const prevItem = itemsList[currentItemIndex - 1]
-            updateSelection(item, false, false)
-            currentItemIndex--
             updateSelection(prevItem, false, true)
             scrollToItem(prevItem)
             audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
             clearLine(prevItem)
-        } else if (currentItemIndex != 0) {
+            updateSelection(item, false, false)
+            currentItemIndex--
+        } else if (currentWordIndex != -1) {
             // we are in the middle of line
-            updateSelection(item, false, true)
             audio.currentTime = Math.max(0, item.dataset.time - 1.5)
+            clearLine(item)
+            currentWordIndex = -1
         }
-        currentWordIndex = -1
-        clearLine(item)
     } else {
         const prevItem = itemsList[currentItemIndex - 1]
         currentItemIndex--
@@ -595,13 +595,9 @@ window.addEventListener('keydown', (e) => {
         if (e.shiftKey) {
             prevItem()
         } else {
-            if (fileInput.files.length == 0) {
-                fileInput.click()
-            } else if (itemsList.length == 0) {
-                plainLyricParser()
-            } else {
-                next()
-            }
+            if (fileInput.files.length == 0) fileInput.click()
+            else if (itemsList.length == 0) plainLyricParser()
+            else next()
         }
     }
 })
