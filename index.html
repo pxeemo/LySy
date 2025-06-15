@@ -20,6 +20,7 @@
             </button>
             <button class="text-mono" id="playPauseBtn">
                 <img src="./assets/play_arrow.svg" />
+                <img src="./assets/pause.svg" class="hidden" />
             </button>
             <button class="text-mono" id="forwardBtn">
                 <img src="./assets/fast_forward.svg" alt="song seek forward" />
@@ -34,14 +35,18 @@
                 <option value="1.5">x1.5</option>
             </select>
 
-            <div class="sm:flex hidden items-center gap-2">
+            <div class="sm:flex hidden grow items-center gap-2">
                 <span id="currentTime">0:00</span>
-                <input class="w-44" type="range" id="seekBar" value="0" />
+                <input class="grow" type="range" id="seekBar" value="0" />
                 <span id="duration">0:00</span>
             </div>
+
+            <button class="text-mono ml-auto" id="removeSongBtn">
+                <img src="./assets/close.svg" alt="remove song" />
+            </button>
         </div>
-        <div id="fileChooser">
-            <input type="file" name="fileInput" id="file" value="audio/*" />
+        <div id="fileChooser" class="w-full">
+            <input type="file" name="fileInput" id="file" class="w-full" />
         </div>
     </div>
 
