@@ -4,6 +4,7 @@
         "check-format": "prettier --check ."
     },
     "dependencies": {
+        "@tailwindcss/cli": "^4.1.10",
         "tailwindcss": "^4.0.0"
     },
     "devDependencies": {
