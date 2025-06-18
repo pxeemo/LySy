@@ -351,11 +351,11 @@ function createTimedWordEditor(wordEl) {
     return row
 }
 
-function createItemElement(line) {
+function createItemElement(line, isBg = false) {
     const item = document.createElement('li')
     const lineEl = document.createElement('p')
     const editIcon = document.createElement('img')
-    item.dataset.type = 'normal'
+    item.dataset.type = isBg ? 'bg' : 'normal'
     item.classList.add(
         'flex',
         'p-3',
@@ -379,10 +379,11 @@ function createItemElement(line) {
     if (isDuet) item.dataset.vocalist = 1
     lineEl.classList.add(
         'grow',
-        'text-xl',
+        isBg ? 'text-sm' : 'text-xl',
         'text-start',
         'font-semibold',
         'transition-all',
+        'duration-300',
     )
     if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
 
@@ -631,10 +632,8 @@ document.getElementById('playbackSpeed').addEventListener('change', (e) => {
 //
 function addNewItem(above) {
     const index = Number(editItemIndex.value)
-    newItem = createItemElement(editItemInput.value)
-    if (itemsList[index].dataset.vocalist == 2) {
-        switchVocalist(newItem)
-    }
+    const newItem = createItemElement(editItemInput.value, markAsBg.checked)
+    if (itemsList[index].dataset.vocalist == 2) switchVocalist(newItem)
     if (above) {
         itemsList[index].insertAdjacentElement('beforebegin', newItem)
         itemsList.splice(index, 0, newItem)
