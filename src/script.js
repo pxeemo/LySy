@@ -477,11 +477,10 @@ function timestampItem(item, currentTime) {
 }
 
 wordEndBtn.addEventListener('click', () => {
-    const currentTime = audio.currentTime
-    const wordEl =
-        itemsList[currentItemIndex]?.children[1]?.children[currentWordIndex]
+    const lineEl = itemsList[currentItemIndex].children[0]
+    const wordEl = lineEl.children[currentWordIndex]
     if (typeof wordEl?.dataset?.beginTime == 'undefined') return
-    wordEl.dataset.endTime = currentTime
+    wordEl.dataset.endTime = audio.currentTime
 })
 
 function next() {
