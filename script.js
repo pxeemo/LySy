@@ -134,6 +134,7 @@ class AnimationManager {
 
     removeElement(element) {
         const anim = this.animations.get(element)
+        if (typeof anim == 'undefined') return
         if (anim.isPending) clearTimeout(anim.startTimeout)
         this.animations.delete(element)
     }
