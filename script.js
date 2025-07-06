@@ -492,6 +492,7 @@ function next() {
             currentItemIndex++
             currentWordIndex = -1
         }
+        if (currentItemIndex == itemsList.length) return
         const item = itemsList[currentItemIndex]
         const line = item.children[0]
         const prevWord = line.children[currentWordIndex]
@@ -500,11 +501,13 @@ function next() {
         if (currentWordIndex >= line.childElementCount) {
             // end of line
             updateSelection(item, true, false)
-            if (currentItemIndex < itemsList.length - 1) {
+            if (currentItemIndex <= itemsList.length - 1) {
                 currentWordIndex = -1
                 currentItemIndex++
-                updateSelection(itemsList[currentItemIndex], true, true)
-                scrollToItem(itemsList[currentItemIndex])
+                if (currentItemIndex != itemsList.length) {
+                    updateSelection(itemsList[currentItemIndex], true, true)
+                    scrollToItem(itemsList[currentItemIndex])
+                }
             }
         } else {
             const word = line.children[currentWordIndex]
@@ -561,7 +564,8 @@ function prevItem() {
             scrollToItem(prevItem)
             audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
             clearLine(prevItem)
-            updateSelection(item, false, false)
+            if (currentItemIndex != itemsList.length)
+                updateSelection(item, false, false)
             currentItemIndex--
         } else if (currentWordIndex != -1) {
             // we are in the middle of line
