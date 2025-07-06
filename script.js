@@ -524,7 +524,8 @@ function next() {
             manager.addElement(
                 prevWord,
                 Number(prevWord.dataset.beginTime),
-                currentTime - Number(prevWord.dataset.beginTime),
+                Number(prevWord.dataset.endTime) -
+                    Number(prevWord.dataset.beginTime),
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
