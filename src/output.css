@@ -26,6 +26,7 @@
     --color-black: #000;
     --spacing: 0.25rem;
     --text-xs: 0.75rem;
+    --text-xs--line-height: calc(1 / 0.75);
     --text-sm: 0.875rem;
     --text-sm--line-height: calc(1.25 / 0.875);
     --text-lg: 1.125rem;
@@ -271,6 +272,9 @@
   }
   .my-2 {
     margin-block: calc(var(--spacing) * 2);
+  }
+  .my-28 {
+    margin-block: calc(var(--spacing) * 28);
   }
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
