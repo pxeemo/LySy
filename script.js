@@ -13,7 +13,7 @@ const switchVocalistBtn = document.getElementById('switchVocalistBtn')
 const wordEndBtn = document.getElementById('wordEndBtn')
 let isWordByWord = wordByWordCheckbox.checked
 let isDuet = duetCheckbox.checked
-const rtlCharsPattern = /[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/
+const rtlCharsPattern = /^[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/
 
 wordByWordCheckbox.addEventListener('change', (e) => {
     isWordByWord = e.target.checked
@@ -236,31 +236,19 @@ let currentItemIndex = -1
 let currentWordIndex = -1
 
 // Function to update the style of timestamped item
-function updateSelection(item, activate, whiteBorder) {
-    if (activate) {
-        item.classList.remove(
-            'bg-orange-900',
-            'text-zinc-400',
-            'border-zinc-900',
-        )
-        item.classList.add('text-zinc-100', 'cursor-pointer', 'border-zinc-900')
-        if (!whiteBorder) {
-            item.classList.add('bg-zinc-800')
-        }
-    } else {
-        item.classList.remove(
-            'border-zinc-900',
-            'bg-orange-900',
-            'bg-zinc-800',
-            'text-zinc-100',
-            'cursor-pointer',
-        )
-        item.classList.add('border-zinc-700', 'text-zinc-400')
-    }
-    if (whiteBorder) {
-        item.classList.remove('border-orange-400', 'border-zinc-900')
-        item.classList.add('border-zinc-900', 'bg-orange-900')
-    }
+function updateSelection(item, mode) {
+    const activeStyle = [
+        'text-zinc-100',
+        'cursor-pointer',
+        'border-zinc-900',
+        'bg-zinc-800',
+    ]
+    const selectedStyle = ['border-zinc-900', 'bg-orange-900', 'rounded-b-2xl']
+    const normalStyle = ['border-zinc-700', 'text-zinc-400']
+    item.classList.remove(...activeStyle, ...selectedStyle, ...normalStyle)
+    if (mode == 'active') item.classList.add(...activeStyle)
+    else if (mode == 'selected') item.classList.add(...selectedStyle)
+    else if (mode == 'normal') item.classList.add(...normalStyle)
 }
 
 function scrollToItem(item) {
@@ -369,7 +357,7 @@ function createItemElement(line, isBg = false) {
         'border-zinc-800',
         'duration-500',
         'ease-out',
-        'transition-color',
+        'transition-all',
         'scroll-mt-[20svh]',
     )
 
@@ -460,7 +448,7 @@ function plainLyricParser() {
     syncer.classList.remove('hidden')
     scrollToItem(itemsList[0])
     if (isWordByWord) {
-        updateSelection(itemsList[0], true, true)
+        updateSelection(itemsList[0], 'selected')
     }
 
     raiseFab(nextItemBtn, true, 1)
@@ -500,12 +488,12 @@ function next() {
 
         if (currentWordIndex >= line.childElementCount) {
             // end of line
-            updateSelection(item, true, false)
+            updateSelection(item, 'active')
             if (currentItemIndex <= itemsList.length - 1) {
                 currentWordIndex = -1
                 currentItemIndex++
                 if (currentItemIndex != itemsList.length) {
-                    updateSelection(itemsList[currentItemIndex], true, true)
+                    updateSelection(itemsList[currentItemIndex], 'selected')
                     scrollToItem(itemsList[currentItemIndex])
                 }
             }
@@ -525,14 +513,14 @@ function next() {
                 prevWord,
                 Number(prevWord.dataset.beginTime),
                 Number(prevWord.dataset.endTime) -
-                    Number(prevWord.dataset.beginTime),
+                Number(prevWord.dataset.beginTime),
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
         // is line-by-line
         currentItemIndex++
         const item = itemsList[currentItemIndex]
-        updateSelection(item, true, false)
+        updateSelection(item, 'active')
         scrollToItem(item)
         timestampItem(item, currentTime)
         manager.addElement(item, Number(item.dataset.time))
@@ -561,12 +549,12 @@ function prevItem() {
     if (isWordByWord) {
         if (currentWordIndex == -1 && currentItemIndex != 0) {
             const prevItem = itemsList[currentItemIndex - 1]
-            updateSelection(prevItem, false, true)
+            updateSelection(prevItem, 'selected')
             scrollToItem(prevItem)
             audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
             clearLine(prevItem)
             if (currentItemIndex != itemsList.length)
-                updateSelection(item, false, false)
+                updateSelection(item, 'normal')
             currentItemIndex--
         } else if (currentWordIndex != -1) {
             // we are in the middle of line
@@ -579,7 +567,7 @@ function prevItem() {
         currentItemIndex--
         scrollToItem(currentItemIndex == -1 ? itemsList[0] : prevItem)
         audio.currentTime = Math.max(0, item.dataset.time - 1.5)
-        updateSelection(item, false, false)
+        updateSelection(item, 'normal')
         clearLine(item)
     }
     manager.refresh()
