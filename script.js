@@ -707,7 +707,7 @@ function downloadFileRequest(filename, text) {
 
 const dlFileBtn = document.getElementById('dlFile')
 dlFileBtn.addEventListener('click', () => {
-    let text = ''
+    let text = '[by: Generated using LySy]\n'
     itemsList.forEach((item) => {
         const time = item.dataset.time
         if (typeof time != 'undefined') {
