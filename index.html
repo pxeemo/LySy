@@ -10,8 +10,7 @@
     <meta name="keywords"
         content="LySy, lyrics syncer, LRC generator, music lyrics, sync lyrics, open source, music tool" />
     <meta name="author" content="pxeemo" />
-    <meta name="google-site-verification"
-        content="-LySwkAn3NzQH2QVqQfD1hiY_QmHgMAHGkDuJ8-tA3Y" />
+    <meta name="google-site-verification" content="-LySwkAn3NzQH2QVqQfD1hiY_QmHgMAHGkDuJ8-tA3Y" />
 
     <meta property="og:title" content="LySy - Create Synced Lyrics for Your Musics" />
     <meta property="og:description"
@@ -67,24 +66,34 @@
 
     <div class="container container-md h-[calc(100svh-3rem)] px-1 py-2 text-center">
         <textarea dir="auto"
-            class="w-full h-[calc(100%-9.5rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+            class="w-full h-[calc(100%-13rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
             id="lyricInput" rows="20" placeholder="Enter your lyric text here" required></textarea>
 
         <div class="w-2/3 my-2 mx-auto rounded-2xl overflow-clip">
             <label class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
                 for="isWordByWord">
-                <p class="ps-2 text-lg">Sync word-by-word</p>
+                <p class="ps-2 text-lg text-start">Sync word-by-word</p>
                 <input class="hidden peer" type="checkbox" id="isWordByWord" name="isWordByWord" />
                 <label
-                    class="relative inline-block w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                    class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                     for="isWordByWord"></label>
+            </label>
+            <label class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
+                for="isCharByChar">
+                <p class="ps-2 text-lg text-start">
+                    Character-based syncing
+                </p>
+                <input class="hidden peer" type="checkbox" id="isCharByChar" name="isCharByChar" />
+                <label
+                    class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                    for="isCharByChar"></label>
             </label>
             <label class="flex p-2 my-0.5 bg-zinc-800 rounded-md cursor-pointer items-center justify-between"
                 for="isDuet">
-                <p class="ps-2 text-lg">Enable Duet</p>
+                <p class="ps-2 text-lg text-start">Enable duet</p>
                 <input class="hidden peer" type="checkbox" id="isDuet" name="isDuet" />
                 <label
-                    class="relative inline-block w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                    class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                     for="isDuet"></label>
             </label>
         </div>

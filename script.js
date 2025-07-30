@@ -8,20 +8,26 @@ const fileChooser = document.getElementById('fileChooser')
 const currentTimeDisplay = document.getElementById('currentTime')
 const durationDisplay = document.getElementById('duration')
 const wordByWordCheckbox = document.getElementById('isWordByWord')
+const charByCharCheckbox = document.getElementById('isCharByChar')
 const duetCheckbox = document.getElementById('isDuet')
 const switchVocalistBtn = document.getElementById('switchVocalistBtn')
 const wordEndBtn = document.getElementById('wordEndBtn')
 let isWordByWord = wordByWordCheckbox.checked
+let isCharByChar = charByCharCheckbox.checked
 let isDuet = duetCheckbox.checked
 const rtlCharsPattern = /^[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/
 
 wordByWordCheckbox.addEventListener('change', (e) => {
     isWordByWord = e.target.checked
-    if (itemsList.length != 0) {
-        plainLyricParser()
-    }
+    if (itemsList.length != 0) plainLyricParser()
+    if (isCharByChar && !isWordByWord) charByCharCheckbox.click()
     raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
     raiseFab(wordEndBtn, isWordByWord, 1)
+})
+
+charByCharCheckbox.addEventListener('change', (e) => {
+    isCharByChar = e.target.checked
+    if (isCharByChar && !isWordByWord) wordByWordCheckbox.click()
 })
 
 function raiseFab(button, raise, step = 1) {
@@ -255,23 +261,37 @@ function scrollToItem(item) {
     item.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
+function createWordPartElement(text) {
+    const partEl = document.createElement('span')
+    partEl.innerText = text
+    partEl.classList.add('word')
+    if (rtlCharsPattern.test(text)) partEl.classList.add('rtl')
+    partEl.dataset.type = 'part'
+    return partEl
+}
+
+function splitLineIntoChars(line, lineEl) {
+    Array.from(line).forEach((char) => {
+        if (char == '') return
+        // ignore if it's not a word char (symbols and spaces)
+        if (/\W/.test(char)) {
+            lineEl.lastChild.innerText += char
+            return
+        }
+        lineEl.appendChild(createWordPartElement(char))
+    })
+}
+
 function splitLineIntoWords(line, lineEl) {
     line.split(' ').forEach((word) => {
         if (word == '') return
-        word.split(/(、|-)|<>/).forEach((part) => {
-            if (typeof part != 'undefined' && part != '') {
-                if (['-', '、'].includes(part)) {
-                    lineEl.lastChild.innerText += part
-                    return
-                }
-                const partEl = document.createElement('span')
-                partEl.innerText = part
-                partEl.classList.add('word')
-                if (rtlCharsPattern.test(part)) partEl.classList.add('rtl')
-
-                partEl.dataset.type = 'part'
-                lineEl.appendChild(partEl)
+        word.split(/(-)|<>/).forEach((part) => {
+            if (part == '') return
+            if (part == '-') {
+                lineEl.lastChild.innerText += part
+                return
             }
+            lineEl.appendChild(createWordPartElement(part))
         })
         lineEl.lastChild.dataset.type = 'word'
         lineEl.innerHTML += ' '
@@ -363,7 +383,8 @@ function createItemElement(line, isBg = false) {
 
     if (isWordByWord) {
         if (line.trim() == '') return
-        splitLineIntoWords(line, lineEl)
+        if (isCharByChar) splitLineIntoChars(line, lineEl)
+        else splitLineIntoWords(line, lineEl)
     } else lineEl.innerText = line
     if (isDuet) item.dataset.vocalist = 1
     lineEl.classList.add(
@@ -513,7 +534,7 @@ function next() {
                 prevWord,
                 Number(prevWord.dataset.beginTime),
                 Number(prevWord.dataset.endTime) -
-                    Number(prevWord.dataset.beginTime),
+                Number(prevWord.dataset.beginTime),
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
