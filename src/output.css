@@ -303,17 +303,14 @@
   .h-14 {
     height: calc(var(--spacing) * 14);
   }
-  .h-\[calc\(100\%-9\.5rem\)\] {
-    height: calc(100% - 9.5rem);
+  .h-\[calc\(100\%-13rem\)\] {
+    height: calc(100% - 13rem);
   }
   .h-\[calc\(100svh-3rem\)\] {
     height: calc(100svh - 3rem);
   }
   .w-2\/3 {
     width: calc(2/3 * 100%);
-  }
-  .w-12 {
-    width: calc(var(--spacing) * 12);
   }
   .w-14 {
     width: calc(var(--spacing) * 14);
@@ -329,6 +326,9 @@
   }
   .w-screen {
     width: 100vw;
+  }
+  .min-w-12 {
+    min-width: calc(var(--spacing) * 12);
   }
   .min-w-28 {
     min-width: calc(var(--spacing) * 28);
