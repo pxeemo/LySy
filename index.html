@@ -19,10 +19,9 @@
     <meta property="og:type" content="website" />
 
     <title>Lyrics Syncer</title>
-    <link rel="stylesheet" href="./output.css" />
-    <link rel="stylesheet" href="./slider.css" />
-    <link rel="icon" href="./assets/favicon.svg" />
-    <script src="./script.js" defer></script>
+    <link rel="icon" href="/assets/favicon-tg6NTsh5.svg" />
+  <script type="module" crossorigin src="/assets/index-CKRXFDXc.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DA9Dv2Pm.css">
 </head>
 
 <body class="bg-zinc-900 text-zinc-200 font-vazir pb-36">
@@ -30,14 +29,14 @@
     <div class="fixed z-20 w-screen h-12 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
         <div class="hidden gap-4 items-center" id="player">
             <button class="text-mono" id="backwardBtn">
-                <img src="./assets/fast_rewind.svg" alt="song seek backward" />
+                <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20height='24px'%20viewBox='0%20-960%20960%20960'%20width='24px'%20fill='%23e8eaed'%3e%3cpath%20d='M860-240%20500-480l360-240v480Zm-400%200L100-480l360-240v480Zm-80-240Zm400%200Zm-400%2090v-180l-136%2090%20136%2090Zm400%200v-180l-136%2090%20136%2090Z'/%3e%3c/svg%3e" alt="song seek backward" />
             </button>
             <button class="text-mono" id="playPauseBtn">
-                <img src="./assets/play_arrow.svg" />
-                <img src="./assets/pause.svg" class="hidden" />
+                <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20height='24px'%20viewBox='0%20-960%20960%20960'%20width='24px'%20fill='%23e8eaed'%3e%3cpath%20d='M320-200v-560l440%20280-440%20280Zm80-280Zm0%20134%20210-134-210-134v268Z'/%3e%3c/svg%3e" />
+                <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20height='24px'%20viewBox='0%20-960%20960%20960'%20width='24px'%20fill='%23e8eaed'%3e%3cpath%20d='M520-200v-560h240v560H520Zm-320%200v-560h240v560H200Zm400-80h80v-400h-80v400Zm-320%200h80v-400h-80v400Zm0-400v400-400Zm320%200v400-400Z'/%3e%3c/svg%3e" class="hidden" />
             </button>
             <button class="text-mono" id="forwardBtn">
-                <img src="./assets/fast_forward.svg" alt="song seek forward" />
+                <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20height='24px'%20viewBox='0%20-960%20960%20960'%20width='24px'%20fill='%23e8eaed'%3e%3cpath%20d='M100-240v-480l360%20240-360%20240Zm400%200v-480l360%20240-360%20240ZM180-480Zm400%200Zm-400%2090%20136-90-136-90v180Zm400%200%20136-90-136-90v180Z'/%3e%3c/svg%3e" alt="song seek forward" />
             </button>
 
             <select name="playbackSpeed" class="bg-zinc-800 text-zinc-100" id="playbackSpeed">
@@ -56,7 +55,7 @@
             </div>
 
             <button class="text-mono ml-auto" id="removeSongBtn">
-                <img src="./assets/close.svg" alt="remove song" />
+                <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20height='24px'%20viewBox='0%20-960%20960%20960'%20width='24px'%20fill='%23e8eaed'%3e%3cpath%20d='m256-200-56-56%20224-224-224-224%2056-56%20224%20224%20224-224%2056%2056-224%20224%20224%20224-56%2056-224-224-224%20224Z'/%3e%3c/svg%3e" alt="remove song" />
             </button>
         </div>
         <div id="fileChooser" class="w-full">
@@ -149,28 +148,29 @@
                     </label>
                 </div>
                 <button
-                    class="px-2 py-0.5 text-orange-400 hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-300"
+                    class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
                     id="addItemAboveBtn">
                     Add Above
                 </button>
                 <button
-                    class="px-2 py-0.5 text-orange-400 hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-300"
+                    class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
                     id="addItemBelowBtn">
                     Add Below
                 </button>
-                <button class="px-2 py-0.5 text-red-500 hover:bg-red-400/20 rounded-full transition-all duration-300"
+                <button
+                    class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
                     id="editItemRemove">
                     Remove
                 </button>
             </div>
             <div class="flex justify-end">
                 <button
-                    class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-300"
+                    class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
                     id="editItemCancel">
                     Cancel
                 </button>
                 <button
-                    class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-300"
+                    class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
                     id="editItemDone">
                     Save
                 </button>
