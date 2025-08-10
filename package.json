@@ -1,13 +1,18 @@
 {
-    "scripts": {
-        "format": "prettier --write .",
-        "check-format": "prettier --check ."
-    },
-    "dependencies": {
-        "@tailwindcss/cli": "^4.1.10",
-        "tailwindcss": "^4.0.0"
-    },
-    "devDependencies": {
-        "prettier": "^3.4.2"
-    }
+  "name": "lysy",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "tailwindcss": "^4.1.11"
+  }
 }

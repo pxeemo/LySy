@@ -19,10 +19,9 @@
     <meta property="og:type" content="website" />
 
     <title>Lyrics Syncer</title>
-    <link rel="stylesheet" href="./output.css" />
-    <link rel="stylesheet" href="./slider.css" />
-    <link rel="icon" href="./assets/favicon.svg" />
-    <script src="./script.js" defer></script>
+    <link rel="stylesheet" href="./src/style.css" />
+    <link rel="icon" href="./src/assets/favicon.svg" />
+    <script type="module" src="./src/main.js" defer></script>
 </head>
 
 <body class="bg-zinc-900 text-zinc-200 font-vazir pb-36">
@@ -30,14 +29,14 @@
     <div class="fixed z-20 w-screen h-12 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
         <div class="hidden gap-4 items-center" id="player">
             <button class="text-mono" id="backwardBtn">
-                <img src="./assets/fast_rewind.svg" alt="song seek backward" />
+                <img src="./src/assets/fast_rewind.svg" alt="song seek backward" />
             </button>
             <button class="text-mono" id="playPauseBtn">
-                <img src="./assets/play_arrow.svg" />
-                <img src="./assets/pause.svg" class="hidden" />
+                <img src="./src/assets/play_arrow.svg" />
+                <img src="./src/assets/pause.svg" class="hidden" />
             </button>
             <button class="text-mono" id="forwardBtn">
-                <img src="./assets/fast_forward.svg" alt="song seek forward" />
+                <img src="./src/assets/fast_forward.svg" alt="song seek forward" />
             </button>
 
             <select name="playbackSpeed" class="bg-zinc-800 text-zinc-100" id="playbackSpeed">
@@ -56,7 +55,7 @@
             </div>
 
             <button class="text-mono ml-auto" id="removeSongBtn">
-                <img src="./assets/close.svg" alt="remove song" />
+                <img src="./src/assets/close.svg" alt="remove song" />
             </button>
         </div>
         <div id="fileChooser" class="w-full">
@@ -149,28 +148,29 @@
                     </label>
                 </div>
                 <button
-                    class="px-2 py-0.5 text-orange-400 hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-300"
+                    class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
                     id="addItemAboveBtn">
                     Add Above
                 </button>
                 <button
-                    class="px-2 py-0.5 text-orange-400 hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-300"
+                    class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
                     id="addItemBelowBtn">
                     Add Below
                 </button>
-                <button class="px-2 py-0.5 text-red-500 hover:bg-red-400/20 rounded-full transition-all duration-300"
+                <button
+                    class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
                     id="editItemRemove">
                     Remove
                 </button>
             </div>
             <div class="flex justify-end">
                 <button
-                    class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-300"
+                    class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
                     id="editItemCancel">
                     Cancel
                 </button>
                 <button
-                    class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-300"
+                    class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
                     id="editItemDone">
                     Save
                 </button>

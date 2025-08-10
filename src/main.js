@@ -1,3 +1,5 @@
+import { formatTime, deformatTime } from './utils/helpers'
+
 const fileInput = document.getElementById('file')
 const removeSongBtn = document.getElementById('removeSongBtn')
 const audio = document.getElementById('audio')
@@ -76,27 +78,6 @@ forwardBtn.addEventListener('click', () => {
     audio.currentTime += 5 * audio.playbackRate
     manager.refresh()
 })
-
-function formatTime(seconds, lrcformat = true) {
-    const mins = Math.floor(seconds / 60)
-    const secs = (seconds % 60).toFixed(3)
-    if (lrcformat) {
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(6, '0')}`
-    } else {
-        return `${mins}:${Math.floor(secs).toString().padStart(2, '0')}`
-    }
-}
-
-function deformatTime(timeText) {
-    let time = 0
-    timeText
-        .split(':')
-        .reverse()
-        .forEach((t, i) => {
-            time += parseFloat(t) * 60 ** i
-        })
-    return time
-}
 
 // Update seek bar as the audio plays
 audio.addEventListener('timeupdate', () => {
@@ -398,7 +379,7 @@ function createItemElement(line, isBg = false) {
     if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
 
     editIcon.classList.add('mx-2', 'cursor-pointer')
-    editIcon.src = './assets/edit.svg'
+    editIcon.src = './src/assets/edit.svg'
     editIcon.width = 20
     editIcon.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -460,7 +441,7 @@ function plainLyricParser() {
     currentItemIndex = -1
     plainLyric.split('\n').forEach((line) => {
         if (isWordByWord && line.trim() == '') return
-        item = createItemElement(line)
+        const item = createItemElement(line)
         lyricList.appendChild(item)
         itemsList.push(item)
     })

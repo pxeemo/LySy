@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Vazirmatn:wght@100..900&display=swap');
+@import 'tailwindcss';
+
+@utility container {
+  margin-inline: auto;
+}
+
+@layer base {
+  button {
+    cursor: pointer;
+  }
+}
+
+@theme {
+  --color-orange-400: rgb(252, 121, 43);
+  --color-orange-900: rgb(107, 57, 27);
+
+  --font-vazir: Outfit, Vazirmatn, sans-serif;
+
+  --gradient-shade: 8px;
+}
+
+.word {
+  background-image: linear-gradient(270deg,
+      var(--color-zinc-400) calc(50% - var(--gradient-shade) / 2),
+      var(--color-zinc-100) calc(50% + var(--gradient-shade) / 2));
+  background-size: calc(200% + var(--gradient-shade)) 100%;
+  background-position: right;
+  background-clip: text;
+  color: transparent;
+  animation-name: '';
+  animation-fill-mode: forwards;
+  animation-play-state: paused;
+  animation-timing-function: linear;
+}
+
+.word.actived {
+  background-position: left;
+}
+
+.word.rtl {
+  direction: rtl;
+  background-image: linear-gradient(90deg,
+      var(--color-zinc-400) calc(50% - var(--gradient-shade) / 2),
+      var(--color-zinc-100) calc(50% + var(--gradient-shade) / 2));
+  background-position: left;
+  animation-direction: reverse;
+}
+
+.word.rtl.actived {
+  background-position: right;
+}
+
+@keyframes word-gradient {
+  from {
+    background-position: right;
+  }
+
+  to {
+    background-position: left;
+  }
+}
