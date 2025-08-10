@@ -1,3 +1,5 @@
+import { AnimationManager } from './utils/previewAnimation'
+import { generateLrc } from './utils/fileformat/lrc'
 import { formatTime, deformatTime } from './utils/helpers'
 
 const fileInput = document.getElementById('file')
@@ -70,13 +72,13 @@ removeSongBtn.addEventListener('click', () => {
 const backwardBtn = document.getElementById('backwardBtn')
 backwardBtn.addEventListener('click', () => {
     audio.currentTime -= 6 * audio.playbackRate
-    manager.refresh()
+    previewAnim.refresh()
 })
 
 const forwardBtn = document.getElementById('forwardBtn')
 forwardBtn.addEventListener('click', () => {
     audio.currentTime += 5 * audio.playbackRate
-    manager.refresh()
+    previewAnim.refresh()
 })
 
 // Update seek bar as the audio plays
@@ -93,7 +95,7 @@ audio.addEventListener('loadedmetadata', () => {
 // Seek when seek bar is changed
 seekBar.addEventListener('input', () => {
     audio.currentTime = (seekBar.value / 100) * audio.duration
-    manager.refresh()
+    previewAnim.refresh()
 })
 
 // Play/pause button click event
@@ -101,105 +103,7 @@ playPauseBtn.addEventListener('click', () => {
     audio.paused ? audio.play() : audio.pause()
 })
 
-class AnimationManager {
-    constructor() {
-        this.animations = new Map() // Tracks all animations
-        this.isPaused = true
-    }
-
-    // Add element with custom timing
-    addElement(element, delay, duration = 0.5) {
-        // Store animation data
-        this.animations.set(element, {
-            delay: delay,
-            duration: duration,
-            remainingDelay: delay - audio.currentTime,
-            isPending: false,
-        })
-        element.style.animationDuration = `${duration * 1000}ms`
-    }
-
-    removeElement(element) {
-        const anim = this.animations.get(element)
-        if (typeof anim == 'undefined') return
-        if (anim.isPending) clearTimeout(anim.startTimeout)
-        this.animations.delete(element)
-    }
-
-    setAnimationTimeout(anim, element) {
-        anim.startTimeout = setTimeout(() => {
-            if (element.nodeName == 'LI') {
-                element.classList.remove('text-zinc-400')
-                element.classList.add('text-zinc-100')
-                if (anim.remainingDelay >= 0)
-                    element.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                    })
-            } else if (element.nodeName == 'SPAN') {
-                if (anim.remainingDelay >= 0) {
-                    element.style.animationName = 'word-gradient'
-                    element.style.animationPlayState = 'running'
-                }
-                element.classList.add('actived')
-            }
-            anim.isPending = false
-        }, anim.remainingDelay * 1000)
-    }
-
-    clearCompletion(anim, element, currentTime) {
-        anim.isPending = true
-        if (element.nodeName == 'LI' && currentTime < anim.delay) {
-            element.classList.remove('text-zinc-100')
-            element.classList.add('text-zinc-400')
-        } else if (
-            element.nodeName == 'SPAN' &&
-            currentTime < anim.delay + anim.duration
-        ) {
-            element.classList.remove('actived')
-            element.style.animationName = ''
-        }
-    }
-
-    play() {
-        if (!this.isPaused) return
-        const playbackSpeed = 1 / audio.playbackRate
-        const currentTime = audio.currentTime
-        this.animations.forEach((anim, element) => {
-            anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            element.style.animationDuration = `${anim.duration * 1000 * playbackSpeed}ms`
-            this.clearCompletion(anim, element, currentTime)
-            this.setAnimationTimeout(anim, element)
-        })
-        this.isPaused = false
-    }
-
-    pause() {
-        if (this.isPaused) return
-        this.isPaused = true
-        this.animations.forEach((anim, element) => {
-            // Freeze animation
-            element.style.animationPlayState = 'paused'
-
-            if (anim.isPending) clearTimeout(anim.startTimeout)
-        })
-    }
-
-    refresh() {
-        if (this.isPaused) return
-        const playbackSpeed = 1 / audio.playbackRate
-        const currentTime = audio.currentTime
-        this.animations.forEach((anim, element) => {
-            if (anim.isPending) clearTimeout(anim.startTimeout)
-            anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            element.style.animationDuration = `${anim.duration * 1000 * playbackSpeed}ms`
-            this.clearCompletion(anim, element, currentTime)
-            this.setAnimationTimeout(anim, element)
-        })
-    }
-}
-
-const manager = new AnimationManager()
+const previewAnim = new AnimationManager()
 
 const lyricInput = document.getElementById('lyricInput')
 const parseBtn = document.getElementById('plainInputParser')
@@ -210,7 +114,6 @@ const prevItemBtn = document.getElementById('prevItemBtn')
 const editItemModal = document.getElementById('editItemModal')
 const editItemContent = document.getElementById('editItemContent')
 const editItemInput = document.getElementById('editItemInput')
-const editItemCancel = document.getElementById('editItemCancel')
 const editItemRemove = document.getElementById('editItemRemove')
 const editItemDone = document.getElementById('editItemDone')
 const editItemIndex = document.getElementById('editItemIndex')
@@ -349,7 +252,7 @@ function createItemElement(line, isBg = false) {
     item.classList.add(
         'flex',
         'p-3',
-        'ps-4',
+        'pl-4',
         'gap-2',
         'text-zinc-400',
         'items-center',
@@ -419,10 +322,9 @@ function createItemElement(line, isBg = false) {
             editItemContent.appendChild(editItemInput)
         }
         markAsBg.checked = target.parentElement.dataset.type == 'bg'
-        addItemAboveBtn.disabled = index <= currentItemIndex ? true : false
-        addItemBelowBtn.disabled = index < currentItemIndex ? true : false
-        editItemInput.disabled =
-            isWordByWord && index < currentItemIndex ? true : false
+        addItemAboveBtn.disabled = index <= currentItemIndex
+        addItemBelowBtn.disabled = index < currentItemIndex
+        editItemInput.disabled = isWordByWord && index < currentItemIndex
         editItemModal.showModal()
         editItemIndex.value = index
         editItemInput.focus()
@@ -463,7 +365,7 @@ function timestampItem(item, currentTime) {
     item.addEventListener('click', () => {
         if (typeof item.dataset.time == 'undefined') return
         audio.currentTime = item.dataset.time
-        manager.refresh()
+        previewAnim.refresh()
     })
 }
 
@@ -506,12 +408,12 @@ function next() {
         }
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
-            manager.addElement(item, Number(item.dataset.time))
+            previewAnim.addElement(item, Number(item.dataset.time))
         }
         if (typeof prevWord != 'undefined') {
             if (typeof prevWord.dataset.endTime == 'undefined')
                 prevWord.dataset.endTime = currentTime
-            manager.addElement(
+            previewAnim.addElement(
                 prevWord,
                 Number(prevWord.dataset.beginTime),
                 Number(prevWord.dataset.endTime) -
@@ -525,18 +427,18 @@ function next() {
         updateSelection(item, 'active')
         scrollToItem(item)
         timestampItem(item, currentTime)
-        manager.addElement(item, Number(item.dataset.time))
+        previewAnim.addElement(item, Number(item.dataset.time))
     }
 }
 
 function clearLine(item) {
-    manager.removeElement(item)
+    previewAnim.removeElement(item)
     delete item.dataset.time
     if (isWordByWord) {
         Array.from(item.children[0].children).forEach((wordEl) => {
             if (typeof wordEl?.dataset?.beginTime == 'undefined') return
             if (typeof wordEl?.dataset?.endTime != 'undefined')
-                manager.removeElement(wordEl)
+                previewAnim.removeElement(wordEl)
             delete wordEl.dataset.beginTime
             delete wordEl.dataset.endTime
             wordEl.classList.remove('actived')
@@ -572,7 +474,7 @@ function prevItem() {
         updateSelection(item, 'normal')
         clearLine(item)
     }
-    manager.refresh()
+    previewAnim.refresh()
 }
 
 // Add keyboard event listener for spacebar
@@ -607,24 +509,19 @@ function switchVocalist(item) {
     }
 }
 switchVocalistBtn.addEventListener('click', () => {
-    if (itemsList.length != 0) {
-        for (let i = currentItemIndex; i < itemsList.length; i++) {
-            if (i < 0) {
-                i++
-            }
-            switchVocalist(itemsList[i])
-        }
-    }
+    if (itemsList.length == 0) return
+    itemsList.slice(Math.max(0, currentItemIndex)).forEach((item) => {
+        switchVocalist(item)
+    })
 })
 
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
-    manager.refresh()
+    previewAnim.refresh()
 })
 
 // editItemModal.addEventListener('close', (e) => console.log(e))
-// TODO: play audio when the modal gets closed
-//
+
 function addNewItem(above) {
     const index = Number(editItemIndex.value)
     const newItem = createItemElement(editItemInput.value, markAsBg.checked)
@@ -659,13 +556,13 @@ editItemDone.addEventListener('click', () => {
             Array.from(editItemContent.children).forEach((row, i) => {
                 if (row.nodeName == 'TEXTAREA') return
                 const wordEl = itemsList[index].children[0].children[i - 1]
-                manager.removeElement(wordEl)
+                previewAnim.removeElement(wordEl)
                 const beginTime = deformatTime(row.children[0].value)
                 const endTime = deformatTime(row.children[2].value)
                 wordEl.innerText = row.children[1].value
                 wordEl.dataset.beginTime = beginTime
                 wordEl.dataset.endTime = endTime
-                manager.addElement(wordEl, beginTime, endTime - beginTime)
+                previewAnim.addElement(wordEl, beginTime, endTime - beginTime)
             })
             itemsList[index].dataset.time =
                 itemsList[index].children[0].children[0].dataset.beginTime
@@ -678,11 +575,11 @@ editItemDone.addEventListener('click', () => {
             currentWordIndex = -1
         }
     } else {
-        manager.removeElement(itemsList[index])
+        previewAnim.removeElement(itemsList[index])
         itemsList[index].children[0].innerText = editItemInput.value
         const time = deformatTime(editItemContent.children[0].value)
         itemsList[index].dataset.time = time
-        manager.addElement(itemsList[index], time)
+        previewAnim.addElement(itemsList[index], time)
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
@@ -694,49 +591,6 @@ editItemDone.addEventListener('click', () => {
         itemsList[index].children[0].classList.add('text-xl')
     }
 })
-
-function generateLrc() {
-    let text = '[by: Generated using LySy]\n'
-    itemsList.forEach((item) => {
-        const time = item.dataset.time
-        if (typeof time == 'undefined') return
-
-        if (item.dataset.type == 'normal') {
-            text += `[${formatTime(time)}]`
-            if (isDuet) text += item.dataset.vocalist == 1 ? 'v1:' : 'v2:'
-        } else {
-            // removes extra line break from the previous loop
-            text = text.slice(0, -1) + ' [bg:'
-        }
-
-        if (isWordByWord) {
-            const words = Array.from(item.children[0].children)
-            text += `<${formatTime(time)}>`
-            words.forEach((word, index) => {
-                const beginTime = `<${formatTime(word.dataset.beginTime)}>`
-
-                // don't duplicate when words share timestamps
-                if (!text.endsWith(beginTime)) text += beginTime
-
-                text += word.innerText
-
-                // add space if it's not a syllable
-                // and it's not the last word of the line
-                if (word.dataset.type == 'word' && index + 1 != words.length)
-                    text += ' '
-
-                text += `<${formatTime(word.dataset.endTime)}>`
-            })
-        } else {
-            text += `${item.children[0].innerText}`
-        }
-
-        if (item.dataset.type == 'bg') text += ']'
-        text += '\n'
-    })
-
-    return text
-}
 
 function downloadFileRequest(filename, text) {
     const blob = new Blob([text])
@@ -756,19 +610,20 @@ dlFileBtn.addEventListener('click', () => {
         alert('You need to select an input file first')
         return
     }
-    const text = generateLrc()
+    const text = generateLrc(itemsList)
     const inputFileName = fileInput.files[0].name
-    filename = inputFileName.split('.').slice(0, -1).join('.') + '.lrc'
+    // change the extension to .lrc
+    const filename = inputFileName.replace(/(\.\w+?)?$/, '.lrc')
     downloadFileRequest(filename, text)
 })
 
 audio.addEventListener('play', () => {
-    manager.play()
+    previewAnim.play()
     playPauseBtn.firstElementChild.classList.add('hidden')
     playPauseBtn.lastElementChild.classList.remove('hidden')
 })
 audio.addEventListener('pause', () => {
-    manager.pause()
+    previewAnim.pause()
     playPauseBtn.firstElementChild.classList.remove('hidden')
     playPauseBtn.lastElementChild.classList.add('hidden')
 })
