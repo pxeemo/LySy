@@ -1,4 +1,4 @@
-import { formatTime } from './helpers'
+import { formatTime } from '/src/utils/helpers'
 
 export function generateLrc(itemsList) {
     let text = '[by: Generated using LySy]\n'

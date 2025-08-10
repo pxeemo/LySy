@@ -1,6 +1,6 @@
-import { AnimationManager } from './utils/previewAnimation'
-import { generateLrc } from './utils/fileformat/lrc'
-import { formatTime, deformatTime } from './utils/helpers'
+import { AnimationManager } from '/src/utils/previewAnimation'
+import { generateLrc } from '/src/utils/fileformat/lrc'
+import { formatTime, deformatTime } from '/src/utils/helpers'
 
 const fileInput = document.getElementById('file')
 const removeSongBtn = document.getElementById('removeSongBtn')
