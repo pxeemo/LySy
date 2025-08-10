@@ -111,6 +111,7 @@ const lyricList = document.getElementById('lyricList')
 const nextItemBtn = document.getElementById('nextItemBtn')
 const prevItemBtn = document.getElementById('prevItemBtn')
 
+import editIconSvg from '/src/assets/edit.svg'
 const editItemModal = document.getElementById('editItemModal')
 const editItemContent = document.getElementById('editItemContent')
 const editItemInput = document.getElementById('editItemInput')
@@ -282,7 +283,7 @@ function createItemElement(line, isBg = false) {
     if (rtlCharsPattern.test(line)) lineEl.setAttribute('dir', 'rtl')
 
     editIcon.classList.add('mx-2', 'cursor-pointer')
-    editIcon.src = './src/assets/edit.svg'
+    editIcon.src = editIconSvg
     editIcon.width = 20
     editIcon.addEventListener('click', (e) => {
         e.stopPropagation()
@@ -417,7 +418,7 @@ function next() {
                 prevWord,
                 Number(prevWord.dataset.beginTime),
                 Number(prevWord.dataset.endTime) -
-                Number(prevWord.dataset.beginTime),
+                    Number(prevWord.dataset.beginTime),
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
