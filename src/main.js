@@ -611,7 +611,7 @@ dlFileBtn.addEventListener('click', () => {
         alert('You need to select an input file first')
         return
     }
-    const text = generateLrc(itemsList)
+    const text = generateLrc(itemsList, isWordByWord, isDuet)
     const inputFileName = fileInput.files[0].name
     // change the extension to .lrc
     const filename = inputFileName.replace(/(\.\w+?)?$/, '.lrc')
