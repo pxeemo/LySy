@@ -72,13 +72,13 @@ removeSongBtn.addEventListener('click', () => {
 const backwardBtn = document.getElementById('backwardBtn')
 backwardBtn.addEventListener('click', () => {
     audio.currentTime -= 6 * audio.playbackRate
-    previewAnim.refresh()
+    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
 })
 
 const forwardBtn = document.getElementById('forwardBtn')
 forwardBtn.addEventListener('click', () => {
     audio.currentTime += 5 * audio.playbackRate
-    previewAnim.refresh()
+    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
 })
 
 // Update seek bar as the audio plays
@@ -95,7 +95,7 @@ audio.addEventListener('loadedmetadata', () => {
 // Seek when seek bar is changed
 seekBar.addEventListener('input', () => {
     audio.currentTime = (seekBar.value / 100) * audio.duration
-    previewAnim.refresh()
+    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
 })
 
 // Play/pause button click event
@@ -366,7 +366,7 @@ function timestampItem(item, currentTime) {
     item.addEventListener('click', () => {
         if (typeof item.dataset.time == 'undefined') return
         audio.currentTime = item.dataset.time
-        previewAnim.refresh()
+        previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
     })
 }
 
@@ -409,16 +409,21 @@ function next() {
         }
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
-            previewAnim.addElement(item, Number(item.dataset.time))
+            previewAnim.addElement(
+                item,
+                Number(item.dataset.time),
+                audio.currentTime,
+            )
         }
         if (typeof prevWord != 'undefined') {
-            if (typeof prevWord.dataset.endTime == 'undefined')
-                prevWord.dataset.endTime = currentTime
+            const dataset = prevWord.dataset
+            if (typeof dataset.endTime == 'undefined')
+                dataset.endTime = currentTime
             previewAnim.addElement(
                 prevWord,
-                Number(prevWord.dataset.beginTime),
-                Number(prevWord.dataset.endTime) -
-                    Number(prevWord.dataset.beginTime),
+                Number(dataset.beginTime),
+                audio.currentTime,
+                Number(dataset.endTime) - Number(dataset.beginTime),
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
@@ -428,7 +433,11 @@ function next() {
         updateSelection(item, 'active')
         scrollToItem(item)
         timestampItem(item, currentTime)
-        previewAnim.addElement(item, Number(item.dataset.time))
+        previewAnim.addElement(
+            item,
+            Number(item.dataset.time),
+            audio.currentTime,
+        )
     }
 }
 
@@ -475,7 +484,7 @@ function prevItem() {
         updateSelection(item, 'normal')
         clearLine(item)
     }
-    previewAnim.refresh()
+    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
 }
 
 // Add keyboard event listener for spacebar
@@ -518,7 +527,7 @@ switchVocalistBtn.addEventListener('click', () => {
 
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
     audio.playbackRate = e.target.selectedOptions[0].value
-    previewAnim.refresh()
+    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
 })
 
 // editItemModal.addEventListener('close', (e) => console.log(e))
@@ -563,7 +572,12 @@ editItemDone.addEventListener('click', () => {
                 wordEl.innerText = row.children[1].value
                 wordEl.dataset.beginTime = beginTime
                 wordEl.dataset.endTime = endTime
-                previewAnim.addElement(wordEl, beginTime, endTime - beginTime)
+                previewAnim.addElement(
+                    wordEl,
+                    beginTime,
+                    audio.currentTime,
+                    endTime - beginTime,
+                )
             })
             itemsList[index].dataset.time =
                 itemsList[index].children[0].children[0].dataset.beginTime
@@ -580,7 +594,7 @@ editItemDone.addEventListener('click', () => {
         itemsList[index].children[0].innerText = editItemInput.value
         const time = deformatTime(editItemContent.children[0].value)
         itemsList[index].dataset.time = time
-        previewAnim.addElement(itemsList[index], time)
+        previewAnim.addElement(itemsList[index], time, audio.currentTime)
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
@@ -619,7 +633,7 @@ dlFileBtn.addEventListener('click', () => {
 })
 
 audio.addEventListener('play', () => {
-    previewAnim.play()
+    previewAnim.play(audio.currentTime, 1 / audio.playbackRate)
     playPauseBtn.firstElementChild.classList.add('hidden')
     playPauseBtn.lastElementChild.classList.remove('hidden')
 })

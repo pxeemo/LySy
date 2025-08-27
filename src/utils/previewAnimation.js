@@ -1,19 +1,18 @@
 export class AnimationManager {
+    // This class is to manage (add, play,...) synced WYSIWYG animations
     constructor() {
-        this.animations = new Map() // Tracks all animations
+        this.animations = new Map()
         this.isPaused = true
     }
 
-    // Add element with custom timing
-    addElement(element, delay, duration = 0.5) {
-        // Store animation data
+    addElement(element, delay, currentTime, duration = 0.5) {
         this.animations.set(element, {
             delay: delay,
             duration: duration,
-            remainingDelay: delay - audio.currentTime,
+            remainingDelay: delay - currentTime,
             isPending: false,
         })
-        element.style.animationDuration = `${duration * 1000}ms`
+        element.style.animationDuration = `${duration}s`
     }
 
     removeElement(element) {
@@ -58,13 +57,11 @@ export class AnimationManager {
         }
     }
 
-    play() {
+    play(currentTime, playbackSpeed) {
         if (!this.isPaused) return
-        const playbackSpeed = 1 / audio.playbackRate
-        const currentTime = audio.currentTime
         this.animations.forEach((anim, element) => {
             anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            element.style.animationDuration = `${anim.duration * 1000 * playbackSpeed}ms`
+            element.style.animationDuration = `${anim.duration * playbackSpeed}s`
             this.clearCompletion(anim, element, currentTime)
             this.setAnimationTimeout(anim, element)
         })
@@ -75,21 +72,17 @@ export class AnimationManager {
         if (this.isPaused) return
         this.isPaused = true
         this.animations.forEach((anim, element) => {
-            // Freeze animation
             element.style.animationPlayState = 'paused'
-
             if (anim.isPending) clearTimeout(anim.startTimeout)
         })
     }
 
-    refresh() {
+    refresh(currentTime, playbackSpeed) {
         if (this.isPaused) return
-        const playbackSpeed = 1 / audio.playbackRate
-        const currentTime = audio.currentTime
         this.animations.forEach((anim, element) => {
             if (anim.isPending) clearTimeout(anim.startTimeout)
             anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            element.style.animationDuration = `${anim.duration * 1000 * playbackSpeed}ms`
+            element.style.animationDuration = `${anim.duration * playbackSpeed}s`
             this.clearCompletion(anim, element, currentTime)
             this.setAnimationTimeout(anim, element)
         })
