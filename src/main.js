@@ -171,7 +171,7 @@ function splitLineIntoWords(line, lineEl) {
     line.split(' ').forEach((word) => {
         if (word == '') return
         word.split(/(-)|<>/).forEach((part) => {
-            if (part == '') return
+            if (typeof part == 'undefined' || part == '') return
             if (part == '-') {
                 lineEl.lastChild.innerText += part
                 return
