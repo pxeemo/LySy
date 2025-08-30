@@ -65,10 +65,10 @@
 
     <div class="container container-md h-[calc(100svh-3rem)] px-1 py-2 text-center">
         <textarea dir="auto"
-            class="w-full h-[calc(100%-13rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+            class="w-full max-w-3xl h-[calc(100%-13rem)] p-2 outline-none bg-zinc-950 rounded-md focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
             id="lyricInput" rows="20" placeholder="Enter your lyric text here" required></textarea>
 
-        <div class="w-2/3 my-2 mx-auto rounded-2xl overflow-clip">
+        <div class="max-w-lg my-2 mx-auto rounded-2xl overflow-clip">
             <label class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
                 for="isWordByWord">
                 <p class="ps-2 text-lg text-start">Sync word-by-word</p>
@@ -103,8 +103,8 @@
     </div>
 
     <!-- Lyrics container -->
-    <div class="container container-md px-1 py-2 my-28 text-center hidden" id="syncer">
-        <ul class="w-full text-start rounded-2xl overflow-clip" id="lyricList"></ul>
+    <div class="container container-md max-w-3xl px-1 py-2 my-28 text-center hidden" id="syncer">
+        <ul class="w-full text-start font-bold overflow-clip" id="lyricList"></ul>
 
         <button class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2" id="dlFile">
             Save

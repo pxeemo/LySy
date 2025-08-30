@@ -133,9 +133,10 @@ function updateSelection(item, mode) {
         'cursor-pointer',
         'border-zinc-900',
         'bg-zinc-800',
+        'border-b-2',
     ]
-    const selectedStyle = ['border-zinc-900', 'bg-orange-900', 'rounded-b-2xl']
-    const normalStyle = ['border-zinc-700', 'text-zinc-400']
+    const selectedStyle = ['border-orange-400', 'border-1', 'rounded-b-2xl']
+    const normalStyle = ['border-zinc-800', 'border-b-2', 'text-zinc-400']
     item.classList.remove(...activeStyle, ...selectedStyle, ...normalStyle)
     if (mode == 'active') item.classList.add(...activeStyle)
     else if (mode == 'selected') item.classList.add(...selectedStyle)
@@ -252,15 +253,17 @@ function createItemElement(line, isBg = false) {
     item.dataset.type = isBg ? 'bg' : 'normal'
     item.classList.add(
         'flex',
-        'p-3',
-        'pl-4',
+        isBg ? 'py-2' : 'py-4',
+        'px-5',
         'gap-2',
         'text-zinc-400',
         'items-center',
         'rounded',
+        'first:rounded-t-2xl',
+        'last:rounded-b-2xl',
         'border-b-2',
         'border-zinc-800',
-        'duration-500',
+        'duration-300',
         'ease-out',
         'transition-all',
         'scroll-mt-[20svh]',
@@ -274,9 +277,7 @@ function createItemElement(line, isBg = false) {
     if (isDuet) item.dataset.vocalist = 1
     lineEl.classList.add(
         'grow',
-        isBg ? 'text-sm' : 'text-xl',
-        'text-start',
-        'font-semibold',
+        isBg ? null : 'text-2xl',
         'transition-all',
         'duration-300',
     )
@@ -598,12 +599,14 @@ editItemDone.addEventListener('click', () => {
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
-        itemsList[index].children[0].classList.remove('text-xl')
-        itemsList[index].children[0].classList.add('text-sm')
+        itemsList[index].children[0].classList.remove('text-2xl', 'p-4')
+        itemsList[index].classList.remove('py-4')
+        itemsList[index].classList.add('py-2')
     } else {
         itemsList[index].dataset.type = 'normal'
-        itemsList[index].children[0].classList.remove('text-sm')
-        itemsList[index].children[0].classList.add('text-xl')
+        itemsList[index].classList.remove('py-2')
+        itemsList[index].classList.add('py-4')
+        itemsList[index].children[0].classList.add('text-2xl')
     }
 })
 
