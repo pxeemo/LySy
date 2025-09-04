@@ -416,7 +416,7 @@ function next() {
                 }
             }
         }
-        const word = line.children[currentWordIndex]
+        const word = itemsList[currentWordIndex].children[0].children[currentWordIndex]
         word.dataset.beginTime = currentTime
         word.classList.add('actived')
         if (currentWordIndex == 0) {
