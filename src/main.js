@@ -378,7 +378,7 @@ wordEndBtn.addEventListener('click', () => {
     wordEl.dataset.endTime = audio.currentTime
     if (currentWordIndex + 1 >= lineEl.childElementCount) {
         // end of line
-        updateSelection(item, 'active')
+        updateSelection(itemsList[currentItemIndex], 'active')
         if (currentItemIndex <= itemsList.length - 1) {
             currentWordIndex = -1
             currentItemIndex++
