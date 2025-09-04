@@ -399,14 +399,12 @@ function next() {
             currentWordIndex = -1
         }
         if (currentItemIndex == itemsList.length) return
-        const item = itemsList[currentItemIndex]
-        const line = item.children[0]
-        const prevWord = line.children[currentWordIndex]
+        const prevWord = itemsList[currentItemIndex].children[0].children[currentWordIndex]
         currentWordIndex++
 
-        if (currentWordIndex >= line.childElementCount) {
+        if (currentWordIndex >= itemsList[currentItemIndex].children[0].childElementCount) {
             // end of line
-            updateSelection(item, 'active')
+            updateSelection(itemsList[currentItemIndex], 'active')
             if (currentItemIndex <= itemsList.length - 1) {
                 currentWordIndex = 0
                 currentItemIndex++
@@ -416,7 +414,9 @@ function next() {
                 }
             }
         }
-        const word = itemsList[currentWordIndex].children[0].children[currentWordIndex]
+        const item = itemsList[currentItemIndex]
+        const line = item.children[0]
+        const word = line.children[currentWordIndex]
         word.dataset.beginTime = currentTime
         word.classList.add('actived')
         if (currentWordIndex == 0) {
