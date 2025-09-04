@@ -376,6 +376,18 @@ wordEndBtn.addEventListener('click', () => {
     const wordEl = lineEl.children[currentWordIndex]
     if (typeof wordEl?.dataset?.beginTime == 'undefined') return
     wordEl.dataset.endTime = audio.currentTime
+    if (currentWordIndex >= lineEl.childElementCount) {
+        // end of line
+        updateSelection(item, 'active')
+        if (currentItemIndex <= itemsList.length - 1) {
+            currentWordIndex = -1
+            currentItemIndex++
+            if (currentItemIndex != itemsList.length) {
+                updateSelection(itemsList[currentItemIndex], 'selected')
+                scrollToItem(itemsList[currentItemIndex])
+            }
+        }
+    }
 })
 
 function next() {
@@ -396,18 +408,17 @@ function next() {
             // end of line
             updateSelection(item, 'active')
             if (currentItemIndex <= itemsList.length - 1) {
-                currentWordIndex = -1
+                currentWordIndex = 0
                 currentItemIndex++
                 if (currentItemIndex != itemsList.length) {
                     updateSelection(itemsList[currentItemIndex], 'selected')
                     scrollToItem(itemsList[currentItemIndex])
                 }
             }
-        } else {
-            const word = line.children[currentWordIndex]
-            word.dataset.beginTime = currentTime
-            word.classList.add('actived')
         }
+        const word = line.children[currentWordIndex]
+        word.dataset.beginTime = currentTime
+        word.classList.add('actived')
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
             previewAnim.addElement(
