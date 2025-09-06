@@ -133,10 +133,9 @@ function updateSelection(item, mode) {
         'cursor-pointer',
         'border-zinc-900',
         'bg-zinc-800',
-        'border-b-2',
     ]
-    const selectedStyle = ['border-orange-400', 'border-1', 'rounded-b-2xl']
-    const normalStyle = ['border-zinc-800', 'border-b-2', 'text-zinc-400']
+    const selectedStyle = ['border-orange-400', 'rounded-b-2xl']
+    const normalStyle = ['border-zinc-900', 'text-zinc-400']
     item.classList.remove(...activeStyle, ...selectedStyle, ...normalStyle)
     if (mode == 'active') item.classList.add(...activeStyle)
     else if (mode == 'selected') item.classList.add(...selectedStyle)
@@ -261,8 +260,8 @@ function createItemElement(line, isBg = false) {
         'rounded',
         'first:rounded-t-2xl',
         'last:rounded-b-2xl',
-        'border-b-2',
-        'border-zinc-800',
+        'border-1',
+        'border-zinc-900',
         'duration-300',
         'ease-out',
         'transition-all',
