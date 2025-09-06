@@ -10,7 +10,6 @@ export class AnimationManager {
             delay: delay,
             duration: duration,
             remainingDelay: delay - currentTime,
-            isPending: false,
         })
         element.style.animationDuration = `${duration}s`
     }
@@ -18,7 +17,7 @@ export class AnimationManager {
     removeElement(element) {
         const anim = this.animations.get(element)
         if (typeof anim == 'undefined') return
-        if (anim.isPending) clearTimeout(anim.startTimeout)
+        clearTimeout(anim.startTimeout)
         this.animations.delete(element)
     }
 
@@ -39,19 +38,14 @@ export class AnimationManager {
                 }
                 element.classList.add('actived')
             }
-            anim.isPending = false
         }, anim.remainingDelay * 1000)
     }
 
-    clearCompletion(anim, element, currentTime) {
-        anim.isPending = true
-        if (element.nodeName == 'LI' && currentTime < anim.delay) {
+    clearCompletion(element) {
+        if (element.nodeName == 'LI') {
             element.classList.remove('text-zinc-100')
             element.classList.add('text-zinc-400')
-        } else if (
-            element.nodeName == 'SPAN' &&
-            currentTime < anim.delay + anim.duration
-        ) {
+        } else if (element.nodeName == 'SPAN') {
             element.classList.remove('actived')
             element.style.animationName = ''
         }
@@ -61,9 +55,18 @@ export class AnimationManager {
         if (!this.isPaused) return
         this.animations.forEach((anim, element) => {
             anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            element.style.animationDuration = `${anim.duration * playbackSpeed}s`
-            this.clearCompletion(anim, element, currentTime)
-            this.setAnimationTimeout(anim, element)
+            if (anim.delay + anim.duration < currentTime) {
+                element.style.animationDuration = '0'
+                element.style.animationName = ''
+                element.classList.add('actived')
+            } else if (anim.delay < currentTime) {
+                element.style.animationDuration = `${(anim.duration + anim.remainingDelay) * playbackSpeed}s`
+                element.style.animationPlayState = 'running'
+            } else {
+                element.style.animationDuration = `${anim.duration * playbackSpeed}s`
+                this.clearCompletion(element)
+                this.setAnimationTimeout(anim, element)
+            }
         })
         this.isPaused = false
     }
@@ -73,18 +76,26 @@ export class AnimationManager {
         this.isPaused = true
         this.animations.forEach((anim, element) => {
             element.style.animationPlayState = 'paused'
-            if (anim.isPending) clearTimeout(anim.startTimeout)
+            clearTimeout(anim.startTimeout)
         })
     }
 
     refresh(currentTime, playbackSpeed) {
-        if (this.isPaused) return
         this.animations.forEach((anim, element) => {
-            if (anim.isPending) clearTimeout(anim.startTimeout)
             anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            element.style.animationDuration = `${anim.duration * playbackSpeed}s`
-            this.clearCompletion(anim, element, currentTime)
-            this.setAnimationTimeout(anim, element)
+            if (anim.delay + anim.duration <= currentTime) {
+                element.style.animationDuration = '0'
+                element.style.animationName = ''
+                element.classList.add('actived')
+            } else if (anim.delay < currentTime) {
+                element.style.animationDuration = `${(anim.duration + anim.remainingDelay) * playbackSpeed}s`
+                element.style.animationPlayState = 'running'
+            } else {
+                element.style.animationDuration = `${anim.duration * playbackSpeed}s`
+                this.clearCompletion(element)
+                clearTimeout(anim.startTimeout)
+                if (!this.isPaused) this.setAnimationTimeout(anim, element)
+            }
         })
     }
 }
