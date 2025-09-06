@@ -337,8 +337,16 @@ function createItemElement(line, isBg = false) {
     return item
 }
 
+function stripLrc(text) {
+    return text
+        .replaceAll(/<\d{2}(:\d{2})+(\.\d{1,3})>/g, '')
+        .replaceAll(/ ?\[bg: ?(.+?)\]\n?/g, '\n$1\n')
+        .replaceAll(/\[\d{2}(:\d{2})+(\.\d{1,3})\]( |v\d+:)*/g, '')
+        .replaceAll(/^(\[[a-zA-Z]+:.+?\]\n)+/g, '\n')
+}
+
 function plainLyricParser() {
-    const plainLyric = lyricInput.value
+    const plainLyric = stripLrc(lyricInput.value)
     lyricList.innerHTML = ''
     itemsList = []
     currentItemIndex = -1
