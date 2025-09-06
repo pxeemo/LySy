@@ -371,13 +371,20 @@ function timestampItem(item, currentTime) {
     })
 }
 
-wordEndBtn.addEventListener('click', () => {
+function wordEnd() {
     const lineEl = itemsList[currentItemIndex].children[0]
     const wordEl = lineEl.children[currentWordIndex]
     if (typeof wordEl?.dataset?.beginTime == 'undefined') return
     wordEl.dataset.endTime = audio.currentTime
+    wordEl.classList.add('active')
     if (currentWordIndex + 1 >= lineEl.childElementCount) {
         // end of line
+        previewAnim.addElement(
+            wordEl,
+            Number(wordEl.dataset.beginTime),
+            audio.currentTime,
+            Number(wordEl.dataset.endTime) - Number(wordEl.dataset.beginTime),
+        )
         updateSelection(itemsList[currentItemIndex], 'active')
         if (currentItemIndex <= itemsList.length - 1) {
             currentWordIndex = -1
@@ -388,7 +395,7 @@ wordEndBtn.addEventListener('click', () => {
             }
         }
     }
-})
+}
 
 function next() {
     const currentTime = audio.currentTime
@@ -398,22 +405,42 @@ function next() {
             currentItemIndex++
             currentWordIndex = -1
         }
-        if (currentItemIndex == itemsList.length) return
-        const prevWord = itemsList[currentItemIndex].children[0].children[currentWordIndex]
+        const prevWord =
+            itemsList[currentItemIndex].children[0].children[currentWordIndex]
+
+        if (typeof prevWord != 'undefined') {
+            const dataset = prevWord.dataset
+            if (typeof dataset.endTime == 'undefined')
+                dataset.endTime = currentTime
+            previewAnim.addElement(
+                prevWord,
+                Number(dataset.beginTime),
+                audio.currentTime,
+                Number(dataset.endTime) - Number(dataset.beginTime),
+            )
+        }
+
         currentWordIndex++
 
-        if (currentWordIndex >= itemsList[currentItemIndex].children[0].childElementCount) {
-            // end of line
+        // end of line
+        if (
+            currentWordIndex >=
+            itemsList[currentItemIndex].children[0].childElementCount
+        ) {
             updateSelection(itemsList[currentItemIndex], 'active')
             if (currentItemIndex <= itemsList.length - 1) {
-                currentWordIndex = 0
                 currentItemIndex++
                 if (currentItemIndex != itemsList.length) {
                     updateSelection(itemsList[currentItemIndex], 'selected')
                     scrollToItem(itemsList[currentItemIndex])
+                    currentWordIndex = 0
+                } else {
+                    currentWordIndex = -1
+                    return
                 }
             }
         }
+
         const item = itemsList[currentItemIndex]
         const line = item.children[0]
         const word = line.children[currentWordIndex]
@@ -425,17 +452,6 @@ function next() {
                 item,
                 Number(item.dataset.time),
                 audio.currentTime,
-            )
-        }
-        if (typeof prevWord != 'undefined') {
-            const dataset = prevWord.dataset
-            if (typeof dataset.endTime == 'undefined')
-                dataset.endTime = currentTime
-            previewAnim.addElement(
-                prevWord,
-                Number(dataset.beginTime),
-                audio.currentTime,
-                Number(dataset.endTime) - Number(dataset.beginTime),
             )
         }
     } else if (currentItemIndex < itemsList.length - 1) {
@@ -518,6 +534,7 @@ window.addEventListener('keydown', (e) => {
 
 nextItemBtn.addEventListener('click', next)
 prevItemBtn.addEventListener('click', prevItem)
+wordEndBtn.addEventListener('click', wordEnd)
 
 function switchVocalist(item) {
     if (item.dataset.vocalist == 1) {
