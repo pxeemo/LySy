@@ -276,6 +276,7 @@ function createItemElement(line, isBg = false) {
     if (isDuet) item.dataset.vocalist = 1
     lineEl.classList.add(
         'grow',
+        'text-start',
         isBg ? null : 'text-2xl',
         'transition-all',
         'duration-300',
