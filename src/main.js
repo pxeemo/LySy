@@ -1,12 +1,11 @@
+import WaveSurfer from 'wavesurfer.js'
 import { AnimationManager } from '/src/utils/previewAnimation'
 import { generateLrc } from '/src/utils/fileformat/lrc'
 import { formatTime, deformatTime } from '/src/utils/helpers'
 
 const fileInput = document.getElementById('file')
 const removeSongBtn = document.getElementById('removeSongBtn')
-const audio = document.getElementById('audio')
 const playPauseBtn = document.getElementById('playPauseBtn')
-const seekBar = document.getElementById('seekBar')
 const miniPlayer = document.getElementById('player')
 const fileChooser = document.getElementById('fileChooser')
 const currentTimeDisplay = document.getElementById('currentTime')
@@ -20,6 +19,22 @@ let isWordByWord = wordByWordCheckbox.checked
 let isCharByChar = charByCharCheckbox.checked
 let isDuet = duetCheckbox.checked
 const rtlCharsPattern = /^[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/
+
+const wavesurfer = WaveSurfer.create({
+    container: '#waveform',
+    waveColor: '#9ca3af',
+    progressColor: '#fc792b',
+    height: 50,
+    dragToSeek: false,
+    hideScrollbar: true,
+    responsive: true,
+    cursorWidth: 2,
+    barWidth: 4,
+    barGap: 2,
+    barRadius: 99,
+    pixelRatio: window.devicePixelRatio,
+    minPxPerSec: 50,
+})
 
 wordByWordCheckbox.addEventListener('change', (e) => {
     isWordByWord = e.target.checked
@@ -53,7 +68,7 @@ function sourceFile() {
     const file = fileInput.files[0]
     if (file) {
         const audioURL = URL.createObjectURL(file)
-        audio.src = audioURL
+        wavesurfer.load(audioURL)
         fileChooser.classList.add('hidden')
         miniPlayer.classList.remove('hidden')
         miniPlayer.classList.add('flex')
@@ -66,42 +81,60 @@ removeSongBtn.addEventListener('click', () => {
     miniPlayer.classList.remove('flex')
     miniPlayer.classList.add('hidden')
     fileChooser.classList.remove('hidden')
-    audio.pause()
+    wavesurfer.empty()
 })
 
 const backwardBtn = document.getElementById('backwardBtn')
 backwardBtn.addEventListener('click', () => {
-    audio.currentTime -= 6 * audio.playbackRate
-    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
+    const duration = wavesurfer.getDuration()
+    if (!duration) return
+    const current = wavesurfer.getCurrentTime()
+    let target = current - 6 * wavesurfer.getPlaybackRate()
+    target = Math.min(duration, Math.max(0, target))
+    wavesurfer.setTime(target)
+    previewAnim.refresh(target, 1 / wavesurfer.getPlaybackRate())
 })
 
 const forwardBtn = document.getElementById('forwardBtn')
 forwardBtn.addEventListener('click', () => {
-    audio.currentTime += 5 * audio.playbackRate
-    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
+    const duration = wavesurfer.getDuration()
+    if (!duration) return
+    const current = wavesurfer.getCurrentTime()
+    let target = current + 5 * wavesurfer.getPlaybackRate()
+    target = Math.max(0, Math.min(duration, target))
+    wavesurfer.setTime(target)
+    previewAnim.refresh(target, 1 / wavesurfer.getPlaybackRate())
 })
 
 // Update seek bar as the audio plays
-audio.addEventListener('timeupdate', () => {
-    seekBar.value = (audio.currentTime / audio.duration) * 100
-    currentTimeDisplay.textContent = formatTime(audio.currentTime, false)
+wavesurfer.on('timeupdate', () => {
+    currentTimeDisplay.textContent = formatTime(
+        wavesurfer.getCurrentTime(),
+        false,
+    )
 })
 
 // Update duration once metadata is loaded
-audio.addEventListener('loadedmetadata', () => {
-    durationDisplay.textContent = formatTime(audio.duration, false)
-})
-
-// Seek when seek bar is changed
-seekBar.addEventListener('input', () => {
-    audio.currentTime = (seekBar.value / 100) * audio.duration
-    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
+wavesurfer.on('decode', () => {
+    durationDisplay.textContent = formatTime(wavesurfer.getDuration(), false)
 })
 
 // Play/pause button click event
-playPauseBtn.addEventListener('click', () => {
-    audio.paused ? audio.play() : audio.pause()
-})
+playPauseBtn.addEventListener('click', () => wavesurfer.playPause())
+
+let zoomLevel = 50
+waveform.addEventListener(
+    'wheel',
+    (e) => {
+        const absX = Math.abs(e.deltaX)
+        const absY = Math.abs(e.deltaY)
+        if (absX > absY || e.shiftKey) return
+        e.preventDefault()
+        zoomLevel -= Math.sign(e.deltaY)
+        wavesurfer.zoom(zoomLevel)
+    },
+    { passive: false },
+)
 
 const previewAnim = new AnimationManager()
 
@@ -374,8 +407,8 @@ function timestampItem(item, currentTime) {
     item.dataset.time = currentTime
     item.addEventListener('click', () => {
         if (typeof item.dataset.time == 'undefined') return
-        audio.currentTime = item.dataset.time
-        previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
+        wavesurfer.setTime(item.dataset.time)
+        previewAnim.refresh(item.dataset.time, 1 / wavesurfer.getPlaybackRate())
     })
 }
 
@@ -383,14 +416,15 @@ function wordEnd() {
     const lineEl = itemsList[currentItemIndex].children[0]
     const wordEl = lineEl.children[currentWordIndex]
     if (typeof wordEl?.dataset?.beginTime == 'undefined') return
-    wordEl.dataset.endTime = audio.currentTime
+    const currentTime = wavesurfer.getCurrentTime()
+    wordEl.dataset.endTime = currentTime
     wordEl.classList.add('active')
     if (currentWordIndex + 1 >= lineEl.childElementCount) {
         // end of line
         previewAnim.addElement(
             wordEl,
             Number(wordEl.dataset.beginTime),
-            audio.currentTime,
+            currentTime,
             Number(wordEl.dataset.endTime) - Number(wordEl.dataset.beginTime),
         )
         updateSelection(itemsList[currentItemIndex], 'active')
@@ -406,7 +440,7 @@ function wordEnd() {
 }
 
 function next() {
-    const currentTime = audio.currentTime
+    const currentTime = wavesurfer.getCurrentTime()
     if (isWordByWord) {
         // First item is not selected yet
         if (currentItemIndex == -1) {
@@ -423,7 +457,7 @@ function next() {
             previewAnim.addElement(
                 prevWord,
                 Number(dataset.beginTime),
-                audio.currentTime,
+                currentTime,
                 Number(dataset.endTime) - Number(dataset.beginTime),
             )
         }
@@ -456,11 +490,7 @@ function next() {
         word.classList.add('actived')
         if (currentWordIndex == 0) {
             timestampItem(item, currentTime)
-            previewAnim.addElement(
-                item,
-                Number(item.dataset.time),
-                audio.currentTime,
-            )
+            previewAnim.addElement(item, Number(item.dataset.time), currentTime)
         }
     } else if (currentItemIndex < itemsList.length - 1) {
         // is line-by-line
@@ -469,11 +499,7 @@ function next() {
         updateSelection(item, 'active')
         scrollToItem(item)
         timestampItem(item, currentTime)
-        previewAnim.addElement(
-            item,
-            Number(item.dataset.time),
-            audio.currentTime,
-        )
+        previewAnim.addElement(item, Number(item.dataset.time), currentTime)
     }
 }
 
@@ -501,14 +527,14 @@ function prevItem() {
             const prevItem = itemsList[currentItemIndex - 1]
             updateSelection(prevItem, 'selected')
             scrollToItem(prevItem)
-            audio.currentTime = Math.max(0, prevItem.dataset.time - 1.5)
+            wavesurfer.setTime(Math.max(0, prevItem.dataset.time - 1.5))
             clearLine(prevItem)
             if (currentItemIndex != itemsList.length)
                 updateSelection(item, 'normal')
             currentItemIndex--
         } else if (currentWordIndex != -1) {
             // we are in the middle of line
-            audio.currentTime = Math.max(0, item.dataset.time - 1.5)
+            wavesurfer.setTime(Math.max(0, item.dataset.time - 1.5))
             clearLine(item)
             currentWordIndex = -1
         }
@@ -516,11 +542,14 @@ function prevItem() {
         const prevItem = itemsList[currentItemIndex - 1]
         currentItemIndex--
         scrollToItem(currentItemIndex == -1 ? itemsList[0] : prevItem)
-        audio.currentTime = Math.max(0, item.dataset.time - 1.5)
+        wavesurfer.setTime(Math.max(0, item.dataset.time - 1.5))
         updateSelection(item, 'normal')
         clearLine(item)
     }
-    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
+    previewAnim.refresh(
+        wavesurfer.getCurrentTime(),
+        1 / wavesurfer.getPlaybackRate(),
+    )
 }
 
 // Add keyboard event listener for spacebar
@@ -563,8 +592,11 @@ switchVocalistBtn.addEventListener('click', () => {
 })
 
 document.getElementById('playbackSpeed').addEventListener('change', (e) => {
-    audio.playbackRate = e.target.selectedOptions[0].value
-    previewAnim.refresh(audio.currentTime, 1 / audio.playbackRate)
+    wavesurfer.setPlaybackRate(e.target.selectedOptions[0].value)
+    previewAnim.refresh(
+        wavesurfer.getCurrentTime(),
+        1 / wavesurfer.getPlaybackRate(),
+    )
 })
 
 // editItemModal.addEventListener('close', (e) => console.log(e))
@@ -612,7 +644,7 @@ editItemDone.addEventListener('click', () => {
                 previewAnim.addElement(
                     wordEl,
                     beginTime,
-                    audio.currentTime,
+                    wavesurfer.getCurrentTime(),
                     endTime - beginTime,
                 )
             })
@@ -631,7 +663,11 @@ editItemDone.addEventListener('click', () => {
         itemsList[index].children[0].innerText = editItemInput.value
         const time = deformatTime(editItemContent.children[0].value)
         itemsList[index].dataset.time = time
-        previewAnim.addElement(itemsList[index], time, audio.currentTime)
+        previewAnim.addElement(
+            itemsList[index],
+            time,
+            wavesurfer.getCurrentTime(),
+        )
     }
     if (markAsBg.checked) {
         itemsList[index].dataset.type = 'bg'
@@ -671,12 +707,15 @@ dlFileBtn.addEventListener('click', () => {
     downloadFileRequest(filename, text)
 })
 
-audio.addEventListener('play', () => {
-    previewAnim.play(audio.currentTime, 1 / audio.playbackRate)
+wavesurfer.on('play', () => {
+    previewAnim.play(
+        wavesurfer.getCurrentTime(),
+        1 / wavesurfer.getPlaybackRate(),
+    )
     playPauseBtn.firstElementChild.classList.add('hidden')
     playPauseBtn.lastElementChild.classList.remove('hidden')
 })
-audio.addEventListener('pause', () => {
+wavesurfer.on('pause', () => {
     previewAnim.pause()
     playPauseBtn.firstElementChild.classList.remove('hidden')
     playPauseBtn.lastElementChild.classList.add('hidden')

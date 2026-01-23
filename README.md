@@ -3,10 +3,10 @@
 Welcome to the Lyrics Syncer Tool! This web application helps you create [LRC](<https://en.m.wikipedia.org/wiki/LRC_(file_format)>) files easily and quickly. With our user-friendly interface, you can add timestamps to your lyrics and download the final LRC file hassle-free.
 
 ## Features
+
 - [x] Easy back and forth movements
 - [x] Edit and remove items
 - [x] Responsive design
-    - [ ] Custom responsive seekbar
 - [ ] Load text from file
 - [x] Word-by-word syncing
 - [x] Syllable-by-syllable syncing

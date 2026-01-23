@@ -1,183 +1,304 @@
 <!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="title"
+            content="LySy - Create Synced Lyrics for Your Musics"
+        />
+        <meta
+            name="description"
+            content="A free, open-source tool to sync lyrics with your music files in LRC format. Easy to use with live preview for music enthusiasts."
+        />
+        <meta
+            name="keywords"
+            content="LySy, lyrics syncer, LRC generator, music lyrics, sync lyrics, open source, music tool"
+        />
+        <meta name="author" content="pxeemo" />
+        <meta
+            name="google-site-verification"
+            content="-LySwkAn3NzQH2QVqQfD1hiY_QmHgMAHGkDuJ8-tA3Y"
+        />
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="title" content="LySy - Create Synced Lyrics for Your Musics" />
-    <meta name="description"
-        content="A free, open-source tool to sync lyrics with your music files in LRC format. Easy to use with live preview for music enthusiasts." />
-    <meta name="keywords"
-        content="LySy, lyrics syncer, LRC generator, music lyrics, sync lyrics, open source, music tool" />
-    <meta name="author" content="pxeemo" />
-    <meta name="google-site-verification" content="-LySwkAn3NzQH2QVqQfD1hiY_QmHgMAHGkDuJ8-tA3Y" />
+        <meta
+            property="og:title"
+            content="LySy - Create Synced Lyrics for Your Musics"
+        />
+        <meta
+            property="og:description"
+            content="Effortlessly sync lyrics to your music library with this open-source tool."
+        />
+        <meta property="og:url" content="https://pxeemo.github.io/LySy/" />
+        <meta property="og:type" content="website" />
 
-    <meta property="og:title" content="LySy - Create Synced Lyrics for Your Musics" />
-    <meta property="og:description"
-        content="Effortlessly sync lyrics to your music library with this open-source tool." />
-    <meta property="og:url" content="https://pxeemo.github.io/LySy/" />
-    <meta property="og:type" content="website" />
+        <title>Lyrics Syncer</title>
+        <link rel="stylesheet" href="./src/style.css" />
+        <link rel="icon" href="./src/assets/favicon.svg" />
+        <script type="module" src="./src/main.js" defer></script>
+    </head>
 
-    <title>Lyrics Syncer</title>
-    <link rel="stylesheet" href="./src/style.css" />
-    <link rel="icon" href="./src/assets/favicon.svg" />
-    <script type="module" src="./src/main.js" defer></script>
-</head>
-
-<body class="bg-zinc-900 text-zinc-200 font-vazir pb-36">
-    <audio id="audio"></audio>
-    <div class="fixed z-20 w-screen h-12 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]">
-        <div class="hidden gap-4 items-center" id="player">
-            <button class="text-mono" id="backwardBtn">
-                <img src="./src/assets/fast_rewind.svg" alt="song seek backward" />
-            </button>
-            <button class="text-mono" id="playPauseBtn">
-                <img src="./src/assets/play_arrow.svg" />
-                <img src="./src/assets/pause.svg" class="hidden" />
-            </button>
-            <button class="text-mono" id="forwardBtn">
-                <img src="./src/assets/fast_forward.svg" alt="song seek forward" />
-            </button>
-
-            <select name="playbackSpeed" class="bg-zinc-800 text-zinc-100" id="playbackSpeed">
-                <option value="0.25">x0.25</option>
-                <option value="0.5">x0.5</option>
-                <option value="0.75">x0.75</option>
-                <option value="1" selected>x1</option>
-                <option value="1.25">x1.25</option>
-                <option value="1.5">x1.5</option>
-            </select>
-
-            <div class="sm:flex hidden grow items-center gap-2">
-                <span id="currentTime">0:00</span>
-                <input class="grow" type="range" id="seekBar" value="0" />
-                <span id="duration">0:00</span>
-            </div>
-
-            <button class="text-mono ml-auto" id="removeSongBtn">
-                <img src="./src/assets/close.svg" alt="remove song" />
-            </button>
-        </div>
-        <div id="fileChooser" class="w-full">
-            <input type="file" name="fileInput" id="file" class="w-full" />
-        </div>
-    </div>
-
-    <div class="container container-md p-4 h-[calc(100svh-3rem)] text-center">
-        <textarea dir="auto"
-            class="w-full max-w-3xl h-[calc(100%-13rem)] py-3 px-4 outline-none bg-zinc-950 rounded-3xl focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
-            id="lyricInput" rows="20" placeholder="Enter your lyric text here" required></textarea>
-
-        <div class="max-w-lg px-6 my-2 mx-auto">
-            <label class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-t-2xl cursor-pointer items-center justify-between"
-                for="isWordByWord">
-                <p class="ps-2 text-lg text-start">Sync word-by-word</p>
-                <input class="hidden peer" type="checkbox" id="isWordByWord" name="isWordByWord" />
-                <label
-                    class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-                    for="isWordByWord"></label>
-            </label>
-            <label class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
-                for="isCharByChar">
-                <p class="ps-2 text-lg text-start">
-                    Character-based syncing
-                </p>
-                <input class="hidden peer" type="checkbox" id="isCharByChar" name="isCharByChar" />
-                <label
-                    class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-                    for="isCharByChar"></label>
-            </label>
-            <label class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-b-2xl cursor-pointer items-center justify-between"
-                for="isDuet">
-                <p class="ps-2 text-lg text-start">Enable duet</p>
-                <input class="hidden peer" type="checkbox" id="isDuet" name="isDuet" />
-                <label
-                    class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-                    for="isDuet"></label>
-            </label>
-        </div>
-
-        <button class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 m-1" id="plainInputParser">
-            Load
-        </button>
-    </div>
-
-    <!-- Lyrics container -->
-    <div class="container container-md max-w-3xl p-4 my-28 text-center hidden" id="syncer">
-        <ul class="w-full text-start font-bold overflow-clip" id="lyricList"></ul>
-
-        <button class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2" id="dlFile">
-            Save
-        </button>
-    </div>
-
-    <!-- Floating action buttons -->
-    <button
-        class="fixed bottom-[-2rem] left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
-        id="switchVocalistBtn">
-        Switch Vocalist
-    </button>
-    <button
-        class="fixed bottom-[-2rem] left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
-        id="wordEndBtn">
-        Word End
-    </button>
-    <button
-        class="fixed bottom-[-2rem] right-4 h-14 w-14 bg-zinc-800 border-orange-400 border-1 shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150"
-        id="prevItemBtn">
-        Back
-    </button>
-    <button
-        class="fixed bottom-[-2rem] right-4 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all"
-        id="nextItemBtn">
-        Next
-    </button>
-
-    <!-- Edit Item Modal -->
-    <dialog class="backdrop:bg-black/80 m-auto p-4 rounded-lg bg-zinc-900" id="editItemModal">
-        <form method="dialog">
-            <div id="editItemContent" class="text-zinc-100 mb-2">
-                <textarea rows="1" id="editItemInput" type="text" name="editItemInput" dir="auto"
-                    class="w-full min-w-80 bg-zinc-900 text-zinc-100 disabled:text-zinc-400 disabled:bg-zinc-800 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"></textarea>
-            </div>
-            <div class="flex flex-col gap-0.5 items-start">
-                <div class="px-2 text-zinc-300 rounded-full">
-                    <input class="accent-orange-400" id="markAsBg" type="checkbox" name="markAsBg" />
-                    <label class="px-1" for="markAsBg">
-                        Mark as background vocal
-                    </label>
+    <body class="bg-zinc-900 text-zinc-200 font-vazir pb-36">
+        <div
+            class="fixed z-20 w-screen sm:h-16 h-30 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111]"
+        >
+            <div
+                class="hidden h-full sm:flex-nowrap flex-wrap gap-4 items-center"
+                id="player"
+            >
+                <div class="min-w-fit">
+                    <button
+                        class="hover:bg-zinc-700 rounded-full w-8 h-8"
+                        id="backwardBtn"
+                    >
+                        <img
+                            src="./src/assets/fast_rewind.svg"
+                            alt="seek backward icon"
+                            class="mx-auto"
+                        />
+                    </button>
+                    <button
+                        class="hover:bg-zinc-700 rounded-full w-8 h-8"
+                        id="playPauseBtn"
+                    >
+                        <img
+                            src="./src/assets/play_arrow.svg"
+                            class="mx-auto"
+                            alt="play icon"
+                        />
+                        <img
+                            src="./src/assets/pause.svg"
+                            alt="pause icon"
+                            class="hidden mx-auto"
+                        />
+                    </button>
+                    <button
+                        class="hover:bg-zinc-700 rounded-full w-8 h-8"
+                        id="forwardBtn"
+                    >
+                        <img
+                            src="./src/assets/fast_forward.svg"
+                            alt="song seek forward"
+                            class="mx-auto"
+                        />
+                    </button>
                 </div>
-                <button
-                    class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
-                    id="addItemAboveBtn">
-                    Add Above
-                </button>
-                <button
-                    class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
-                    id="addItemBelowBtn">
-                    Add Below
-                </button>
-                <button
-                    class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
-                    id="editItemRemove">
-                    Remove
-                </button>
-            </div>
-            <div class="flex justify-end">
-                <button
-                    class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
-                    id="editItemCancel">
-                    Cancel
-                </button>
-                <button
-                    class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
-                    id="editItemDone">
-                    Save
-                </button>
-            </div>
-            <input id="editItemIndex" type="hidden" name="editItemIndex" value="null" />
-        </form>
-    </dialog>
-</body>
 
+                <select
+                    name="playbackSpeed"
+                    class="bg-zinc-800 text-zinc-100"
+                    id="playbackSpeed"
+                >
+                    <option value="0.25">x0.25</option>
+                    <option value="0.5">x0.5</option>
+                    <option value="0.75">x0.75</option>
+                    <option value="1" selected>x1</option>
+                    <option value="1.25">x1.25</option>
+                    <option value="1.5">x1.5</option>
+                </select>
+
+                <div
+                    class="flex sm:order-0 order-first sm:grow min-w-full sm:min-w-0 items-center gap-2"
+                >
+                    <span id="currentTime" class="w-10 text-end">0:00</span>
+                    <div id="waveform" class="min-w-0 w-full"></div>
+                    <span id="duration">0:00</span>
+                </div>
+
+                <button class="ml-auto min-w-fit" id="removeSongBtn">
+                    <img src="./src/assets/close.svg" alt="remove song" />
+                </button>
+            </div>
+            <div id="fileChooser" class="w-full">
+                <input type="file" name="fileInput" id="file" class="w-full" />
+            </div>
+        </div>
+
+        <div
+            class="container container-md p-4 h-[calc(100svh-3rem)] text-center"
+        >
+            <textarea
+                dir="auto"
+                class="w-full max-w-3xl h-[calc(100%-13rem)] py-3 px-4 outline-none bg-zinc-950 rounded-3xl focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+                id="lyricInput"
+                rows="20"
+                placeholder="Enter your lyric text here"
+                required
+            ></textarea>
+
+            <div class="max-w-lg px-6 my-2 mx-auto">
+                <label
+                    class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-t-2xl cursor-pointer items-center justify-between"
+                    for="isWordByWord"
+                >
+                    <p class="ps-2 text-lg text-start">Sync word-by-word</p>
+                    <input
+                        class="hidden peer"
+                        type="checkbox"
+                        id="isWordByWord"
+                        name="isWordByWord"
+                    />
+                    <label
+                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                        for="isWordByWord"
+                    ></label>
+                </label>
+                <label
+                    class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
+                    for="isCharByChar"
+                >
+                    <p class="ps-2 text-lg text-start">
+                        Character-based syncing
+                    </p>
+                    <input
+                        class="hidden peer"
+                        type="checkbox"
+                        id="isCharByChar"
+                        name="isCharByChar"
+                    />
+                    <label
+                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                        for="isCharByChar"
+                    ></label>
+                </label>
+                <label
+                    class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-b-2xl cursor-pointer items-center justify-between"
+                    for="isDuet"
+                >
+                    <p class="ps-2 text-lg text-start">Enable duet</p>
+                    <input
+                        class="hidden peer"
+                        type="checkbox"
+                        id="isDuet"
+                        name="isDuet"
+                    />
+                    <label
+                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                        for="isDuet"
+                    ></label>
+                </label>
+            </div>
+
+            <button
+                class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 m-1"
+                id="plainInputParser"
+            >
+                Load
+            </button>
+        </div>
+
+        <!-- Lyrics container -->
+        <div
+            class="container container-md max-w-3xl p-4 my-28 text-center hidden"
+            id="syncer"
+        >
+            <ul
+                class="w-full text-start font-bold overflow-clip"
+                id="lyricList"
+            ></ul>
+
+            <button
+                class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2"
+                id="dlFile"
+            >
+                Save
+            </button>
+        </div>
+
+        <!-- Floating action buttons -->
+        <button
+            class="fixed bottom-[-2rem] left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
+            id="switchVocalistBtn"
+        >
+            Switch Vocalist
+        </button>
+        <button
+            class="fixed bottom-[-2rem] left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
+            id="wordEndBtn"
+        >
+            Word End
+        </button>
+        <button
+            class="fixed bottom-[-2rem] right-4 h-14 w-14 bg-zinc-800 border-orange-400 border-1 shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150"
+            id="prevItemBtn"
+        >
+            Back
+        </button>
+        <button
+            class="fixed bottom-[-2rem] right-4 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all"
+            id="nextItemBtn"
+        >
+            Next
+        </button>
+
+        <!-- Edit Item Modal -->
+        <dialog
+            class="backdrop:bg-black/80 m-auto p-4 rounded-lg bg-zinc-900"
+            id="editItemModal"
+        >
+            <form method="dialog">
+                <div id="editItemContent" class="text-zinc-100 mb-2">
+                    <textarea
+                        rows="1"
+                        id="editItemInput"
+                        type="text"
+                        name="editItemInput"
+                        dir="auto"
+                        class="w-full min-w-80 bg-zinc-900 text-zinc-100 disabled:text-zinc-400 disabled:bg-zinc-800 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
+                    ></textarea>
+                </div>
+                <div class="flex flex-col gap-0.5 items-start">
+                    <div class="px-2 text-zinc-300 rounded-full">
+                        <input
+                            class="accent-orange-400"
+                            id="markAsBg"
+                            type="checkbox"
+                            name="markAsBg"
+                        />
+                        <label class="px-1" for="markAsBg">
+                            Mark as background vocal
+                        </label>
+                    </div>
+                    <button
+                        class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
+                        id="addItemAboveBtn"
+                    >
+                        Add Above
+                    </button>
+                    <button
+                        class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
+                        id="addItemBelowBtn"
+                    >
+                        Add Below
+                    </button>
+                    <button
+                        class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
+                        id="editItemRemove"
+                    >
+                        Remove
+                    </button>
+                </div>
+                <div class="flex justify-end">
+                    <button
+                        class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
+                        id="editItemCancel"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
+                        id="editItemDone"
+                    >
+                        Save
+                    </button>
+                </div>
+                <input
+                    id="editItemIndex"
+                    type="hidden"
+                    name="editItemIndex"
+                    value="null"
+                />
+            </form>
+        </dialog>
+    </body>
 </html>
