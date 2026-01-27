@@ -50,9 +50,16 @@ charByCharCheckbox.addEventListener('change', (e) => {
 })
 
 function raiseFab(button, raise, step = 1) {
-    button.classList.remove('bottom-[-2rem]', 'bottom-16', 'bottom-32')
-    if (raise) button.classList.add(step == 1 ? 'bottom-16' : 'bottom-32')
-    else button.classList.add('bottom-[-2rem]')
+    button.classList.remove(
+        'bottom-0',
+        'sm:bottom-20',
+        'bottom-34',
+        'sm:bottom-37',
+        'bottom-51',
+    )
+    if (raise && step == 1) button.classList.add('sm:bottom-20', 'bottom-34')
+    else if (raise) button.classList.add('sm:bottom-37', 'bottom-51')
+    else button.classList.add('bottom-0')
 }
 
 raiseFab(switchVocalistBtn, isDuet, isWordByWord ? 2 : 1)
