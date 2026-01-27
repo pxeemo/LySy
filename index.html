@@ -46,7 +46,7 @@
                 class="hidden h-full sm:flex-nowrap flex-wrap gap-4 items-center"
                 id="player"
             >
-                <div class="min-w-fit">
+                <div class="min-w-fit sm:m-0 mx-auto">
                     <button
                         class="hover:bg-zinc-700 rounded-full w-8 h-8"
                         id="backwardBtn"
@@ -86,7 +86,7 @@
 
                 <select
                     name="playbackSpeed"
-                    class="bg-zinc-800 text-zinc-100"
+                    class="bg-zinc-800 text-zinc-100 sm:order-0 -order-1 sm:w-fit w-16"
                     id="playbackSpeed"
                 >
                     <option value="0.25">x0.25</option>
@@ -98,19 +98,32 @@
                 </select>
 
                 <div
-                    class="flex sm:order-0 order-first sm:grow min-w-full sm:min-w-0 items-center gap-2"
+                    class="flex sm:order-0 -order-2 sm:grow min-w-full sm:min-w-0 items-center gap-2"
                 >
-                    <span id="currentTime" class="w-10 text-end">0:00</span>
+                    <span id="currentTime" class="min-w-10 text-end">0:00</span>
                     <div id="waveform" class="min-w-0 w-full"></div>
-                    <span id="duration">0:00</span>
+                    <span id="duration" class="min-w-10">0:00</span>
                 </div>
 
-                <button class="ml-auto min-w-fit" id="removeSongBtn">
-                    <img src="./src/assets/close.svg" alt="remove song" />
+                <button
+                    class="hover:bg-zinc-700 rounded-full min-w-8 h-8 sm:ms-0 ms-8"
+                    id="removeSongBtn"
+                >
+                    <img
+                        src="./src/assets/close.svg"
+                        alt="remove song"
+                        class="mx-auto"
+                    />
                 </button>
             </div>
-            <div id="fileChooser" class="w-full">
-                <input type="file" name="fileInput" id="file" class="w-full" />
+            <div id="fileChooser" class="w-full h-full content-center">
+                <input type="file" name="fileInput" id="file" class="hidden" />
+                <label
+                    for="file"
+                    class="block bg-orange-400 content-center text-center font-medium mx-auto w-3/4 max-w-80 h-5/6 text-black rounded-3xl cursor-pointer"
+                >
+                    Choose File
+                </label>
             </div>
         </div>
 
@@ -139,7 +152,7 @@
                         name="isWordByWord"
                     />
                     <label
-                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                         for="isWordByWord"
                     ></label>
                 </label>
@@ -157,7 +170,7 @@
                         name="isCharByChar"
                     />
                     <label
-                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                         for="isCharByChar"
                     ></label>
                 </label>
@@ -173,7 +186,7 @@
                         name="isDuet"
                     />
                     <label
-                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 top-0 left-0 right-0 bottom-0 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:h-4 before:w-4 before:left-1.5 peer-checked:before:left-[1.125rem] before:top-1.5 peer-checked:before:w-6 peer-checked:before:h-6 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
+                        class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
                         for="isDuet"
                     ></label>
                 </label>

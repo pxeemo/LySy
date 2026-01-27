@@ -137,7 +137,8 @@ waveform.addEventListener(
         const absY = Math.abs(e.deltaY)
         if (absX > absY || e.shiftKey) return
         e.preventDefault()
-        zoomLevel -= Math.sign(e.deltaY)
+        zoomLevel -= Math.sign(e.deltaY) * Math.ceil(zoomLevel / 10)
+        zoomLevel = Math.min(300, Math.max(1, zoomLevel))
         wavesurfer.zoom(zoomLevel)
     },
     { passive: false },
