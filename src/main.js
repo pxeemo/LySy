@@ -4,6 +4,8 @@ import { generateLrc } from '/src/utils/fileformat/lrc'
 import { formatTime, deformatTime } from '/src/utils/helpers'
 
 const fileInput = document.getElementById('file')
+const lrcFileInput = document.getElementById('lrcFile')
+const lyricInput = document.getElementById('lyricInput')
 const removeSongBtn = document.getElementById('removeSongBtn')
 const playPauseBtn = document.getElementById('playPauseBtn')
 const miniPlayer = document.getElementById('player')
@@ -84,6 +86,19 @@ function sourceFile() {
 
 sourceFile()
 fileInput.addEventListener('change', sourceFile)
+
+// Handle LRC file upload
+lrcFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0]
+    if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+            lyricInput.value = event.target.result
+        }
+        reader.readAsText(file)
+    }
+})
+
 removeSongBtn.addEventListener('click', () => {
     miniPlayer.classList.remove('flex')
     miniPlayer.classList.add('hidden')
@@ -146,7 +161,6 @@ waveform.addEventListener(
 
 const previewAnim = new AnimationManager()
 
-const lyricInput = document.getElementById('lyricInput')
 const parseBtn = document.getElementById('plainInputParser')
 const lyricList = document.getElementById('lyricList')
 const nextItemBtn = document.getElementById('nextItemBtn')

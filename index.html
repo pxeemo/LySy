@@ -192,12 +192,21 @@
                 </label>
             </div>
 
-            <button
-                class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 m-1"
-                id="plainInputParser"
-            >
-                Load
-            </button>
+            <div class="flex gap-2 justify-center items-center">
+                <input type="file" name="lrcFileInput" id="lrcFile" class="hidden" accept=".lrc" />
+                <label
+                    for="lrcFile"
+                    class="h-8 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 font-medium rounded-full px-5 leading-8 cursor-pointer transition-colors"
+                >
+                    Upload Lyrics
+                </label>
+                <button
+                    class="h-8 bg-orange-400 text-black font-medium rounded-full px-5"
+                    id="plainInputParser"
+                >
+                    Load
+                </button>
+            </div>
         </div>
 
         <!-- Lyrics container -->
