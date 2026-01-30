@@ -192,12 +192,26 @@
                 </label>
             </div>
 
-            <button
-                class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 m-1"
-                id="plainInputParser"
-            >
-                Load
-            </button>
+            <div class="flex flex-col gap-2 items-center mt-2">
+                <div class="flex gap-2 items-center">
+                    <label for="offsetInput" class="text-zinc-300 text-sm">
+                        Offset (ms):
+                    </label>
+                    <input
+                        type="number"
+                        id="offsetInput"
+                        class="w-24 h-8 bg-zinc-800 text-zinc-100 border-2 border-zinc-700 rounded-lg px-2 text-center outline-none focus:border-orange-400 transition-all"
+                        value="0"
+                        step="10"
+                    />
+                </div>
+                <button
+                    class="h-8 bg-orange-400 text-black font-medium rounded-full px-5"
+                    id="plainInputParser"
+                >
+                    Load
+                </button>
+            </div>
         </div>
 
         <!-- Lyrics container -->
