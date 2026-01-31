@@ -1,9 +1,11 @@
 import WaveSurfer from 'wavesurfer.js'
 import { AnimationManager } from '/src/utils/previewAnimation'
-import { generateLrc } from '/src/utils/fileformat/lrc'
+import { generateLrc, parseLrc, stripLrc } from '/src/utils/fileformat/lrc'
 import { formatTime, deformatTime } from '/src/utils/helpers'
 
 const fileInput = document.getElementById('file')
+const lrcFileInput = document.getElementById('lrcFile')
+const lyricInput = document.getElementById('lyricInput')
 const removeSongBtn = document.getElementById('removeSongBtn')
 const playPauseBtn = document.getElementById('playPauseBtn')
 const miniPlayer = document.getElementById('player')
@@ -85,6 +87,19 @@ function sourceFile() {
 
 sourceFile()
 fileInput.addEventListener('change', sourceFile)
+
+// Handle LRC file upload
+lrcFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0]
+    if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+            lyricInput.value = event.target.result
+        }
+        reader.readAsText(file)
+    }
+})
+
 removeSongBtn.addEventListener('click', () => {
     miniPlayer.classList.remove('flex')
     miniPlayer.classList.add('hidden')
@@ -147,7 +162,6 @@ waveform.addEventListener(
 
 const previewAnim = new AnimationManager()
 
-const lyricInput = document.getElementById('lyricInput')
 const parseBtn = document.getElementById('plainInputParser')
 const lyricList = document.getElementById('lyricList')
 const nextItemBtn = document.getElementById('nextItemBtn')
@@ -380,30 +394,123 @@ function createItemElement(line, isBg = false) {
     return item
 }
 
-function stripLrc(text) {
-    return text
-        .replaceAll(/<\d{2}(:\d{2})+(\.\d{1,3})>/g, '')
-        .replaceAll(/ ?\[bg: ?(.+?)\]\n?/g, '\n$1\n')
-        .replaceAll(/\[\d{2}(:\d{2})+(\.\d{1,3})\]( |v\d+:)*/g, '')
-        .replaceAll(/^(\[[a-zA-Z]+:.+?\]\n)+/g, '\n')
-}
-
 function plainLyricParser() {
-    const plainLyric = stripLrc(lyricInput.value)
+    const inputText = lyricInput.value
     lyricList.innerHTML = ''
     itemsList = []
     currentItemIndex = -1
-    plainLyric.split('\n').forEach((line) => {
-        if (isWordByWord && line.trim() == '') return
-        const item = createItemElement(line)
-        lyricList.appendChild(item)
-        itemsList.push(item)
-    })
+    currentWordIndex = -1
+    
+    // Check if input contains LRC timestamps (including negative)
+    const hasTimestamps = /\[\d{1,2}(:\d{1,2})+(\.\d{1,3})?\]/.test(inputText)
+    
+    if (hasTimestamps) {
+        // Parse LRC with timestamps
+        const parsedLines = parseLrc(inputText)
+        let lastTimestampedIndex = -1
+        
+        parsedLines.forEach((lineData, index) => {
+            if (isWordByWord && lineData.text.trim() == '') return
+            const item = createItemElement(lineData.text, lineData.isBg)
+            
+            // Apply line timestamp if present
+            if (lineData.time !== undefined) {
+                item.dataset.time = lineData.time
+                timestampItem(item, lineData.time)
+                lastTimestampedIndex = itemsList.length
+            }
+            
+            // Apply vocalist if present
+            if (lineData.vocalist === 2 && isDuet) {
+                switchVocalist(item)
+            }
+            
+            // Apply word timestamps if present and in word-by-word mode
+            if (isWordByWord && lineData.words.length > 0) {
+                const lineEl = item.children[0]
+                let wordIndex = 0
+                let lastWordWithTimestamp = -1
+                
+                // Match words from parsed data to created word elements
+                for (const wordData of lineData.words) {
+                    while (wordIndex < lineEl.children.length) {
+                        const wordEl = lineEl.children[wordIndex]
+                        if (wordEl.dataset.type) {
+                            wordEl.dataset.beginTime = wordData.beginTime
+                            wordEl.dataset.endTime = wordData.endTime
+                            wordEl.classList.add('active')
+                            lastWordWithTimestamp = wordIndex
+                            
+                            // Add to preview animation
+                            previewAnim.addElement(
+                                wordEl,
+                                Number(wordData.beginTime),
+                                Number(wordData.endTime),
+                                Number(wordData.endTime) - Number(wordData.beginTime)
+                            )
+                            
+                            wordIndex++
+                            break
+                        }
+                        wordIndex++
+                    }
+                }
+                
+                // Update tracking for word-by-word mode
+                if (lastWordWithTimestamp >= 0) {
+                    currentItemIndex = itemsList.length
+                    currentWordIndex = lastWordWithTimestamp
+                }
+            }
+            
+            lyricList.appendChild(item)
+            itemsList.push(item)
+            
+            // Add line to preview animation if it has a timestamp
+            if (lineData.time !== undefined) {
+                previewAnim.addElement(item, Number(lineData.time), Number(lineData.time))
+            }
+        })
+        
+        // Set current indices based on last timestamped item
+        if (!isWordByWord && lastTimestampedIndex >= 0) {
+            currentItemIndex = lastTimestampedIndex - 1
+        }
+        
+        // Mark completed items as active
+        for (let i = 0; i < itemsList.length; i++) {
+            if (i < currentItemIndex || (i === currentItemIndex && !isWordByWord)) {
+                updateSelection(itemsList[i], 'active')
+            } else if (i === currentItemIndex && isWordByWord) {
+                updateSelection(itemsList[i], 'active')
+            }
+        }
+    } else {
+        // No timestamps, use old behavior
+        const plainLyric = stripLrc(inputText)
+        plainLyric.split('\n').forEach((line) => {
+            if (isWordByWord && line.trim() == '') return
+            const item = createItemElement(line)
+            lyricList.appendChild(item)
+            itemsList.push(item)
+        })
+    }
 
     const syncer = document.getElementById('syncer')
     syncer.classList.remove('hidden')
-    scrollToItem(itemsList[0])
-    if (isWordByWord) {
+    
+    // Scroll to the right position
+    const scrollTarget = currentItemIndex >= 0 && currentItemIndex < itemsList.length 
+        ? itemsList[currentItemIndex] 
+        : itemsList[0]
+    scrollToItem(scrollTarget)
+    
+    // Set selection for the next item to sync
+    if (currentItemIndex + 1 < itemsList.length) {
+        if (isWordByWord) {
+            updateSelection(itemsList[currentItemIndex + 1], 'selected')
+        }
+    } else if (currentItemIndex === -1 && isWordByWord) {
         updateSelection(itemsList[0], 'selected')
     }
 
