@@ -193,6 +193,18 @@
             </div>
 
             <div class="flex gap-2 justify-center items-center">
+                <div class="flex gap-2 items-center">
+                    <label for="offsetInput" class="text-zinc-300 text-sm">
+                        Offset (ms):
+                    </label>
+                    <input
+                        type="number"
+                        id="offsetInput"
+                        class="w-24 h-8 bg-zinc-800 text-zinc-100 border-2 border-zinc-700 rounded-lg px-2 text-center outline-none focus:border-orange-400 transition-all"
+                        value="0"
+                        step="10"
+                    />
+                </div>
                 <input type="file" name="lrcFileInput" id="lrcFile" class="hidden" accept=".lrc" />
                 <label
                     for="lrcFile"

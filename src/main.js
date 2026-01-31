@@ -17,6 +17,7 @@ const charByCharCheckbox = document.getElementById('isCharByChar')
 const duetCheckbox = document.getElementById('isDuet')
 const switchVocalistBtn = document.getElementById('switchVocalistBtn')
 const wordEndBtn = document.getElementById('wordEndBtn')
+const offsetInput = document.getElementById('offsetInput')
 let isWordByWord = wordByWordCheckbox.checked
 let isCharByChar = charByCharCheckbox.checked
 let isDuet = duetCheckbox.checked
@@ -531,7 +532,8 @@ function wordEnd() {
     const lineEl = itemsList[currentItemIndex].children[0]
     const wordEl = lineEl.children[currentWordIndex]
     if (typeof wordEl?.dataset?.beginTime == 'undefined') return
-    const currentTime = wavesurfer.getCurrentTime()
+    const offset = Number(offsetInput.value) / 1000
+    const currentTime = Math.max(0, wavesurfer.getCurrentTime() + offset)
     wordEl.dataset.endTime = currentTime
     wordEl.classList.add('active')
     if (currentWordIndex + 1 >= lineEl.childElementCount) {
@@ -555,7 +557,8 @@ function wordEnd() {
 }
 
 function next() {
-    const currentTime = wavesurfer.getCurrentTime()
+    const offset = Number(offsetInput.value) / 1000
+    const currentTime = Math.max(0, wavesurfer.getCurrentTime() + offset)
     if (isWordByWord) {
         // First item is not selected yet
         if (currentItemIndex == -1) {
