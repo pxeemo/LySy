@@ -15,7 +15,7 @@ import editIconSvg from './assets/edit.svg'
 
 // Interfaces
 interface WordItem {
-    type?: string
+    type: 'part' | 'word'
     text: string
     beginTime?: number
     endTime?: number
@@ -29,9 +29,7 @@ interface LyricItem {
     vocalist?: number
     words: WordItem[]
     // For rendering class list dynamically
-    activeStyle?: boolean
-    selectedStyle?: boolean
-    normalStyle?: boolean
+    mode: 'active' | 'selected' | 'default'
     // Store DOM elements when generated for preview animation
     el?: HTMLElement | null
 }
@@ -92,7 +90,10 @@ onMounted(() => {
 
     wavesurfer.on('timeupdate', () => {
         if (wavesurfer) {
-            currentTimeText.value = formatTime(wavesurfer.getCurrentTime(), false)
+            currentTimeText.value = formatTime(
+                wavesurfer.getCurrentTime(),
+                false,
+            )
         }
     })
 
@@ -120,7 +121,9 @@ onMounted(() => {
     // Setup wheel zoom event
     const waveformEl = document.getElementById('waveform')
     if (waveformEl) {
-        waveformEl.addEventListener('wheel', handleWaveformWheel, { passive: false })
+        waveformEl.addEventListener('wheel', handleWaveformWheel, {
+            passive: false,
+        })
     }
 
     // Setup global spacebar hotkey
@@ -144,29 +147,26 @@ const handleWaveformWheel = (e: WheelEvent) => {
     const absY = Math.abs(e.deltaY)
     if (absX > absY || e.shiftKey) return
     e.preventDefault()
-    let level = zoomLevel.value - Math.sign(e.deltaY) * Math.ceil(zoomLevel.value / 10)
+    let level =
+        zoomLevel.value - Math.sign(e.deltaY) * Math.ceil(zoomLevel.value / 10)
     level = Math.min(300, Math.max(1, level))
     zoomLevel.value = level
     wavesurfer.zoom(level)
 }
 
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-    if (
-        e.code === 'Space' &&
-        !['INPUT', 'TEXTAREA'].includes((document.activeElement as HTMLElement)?.nodeName || '')
-    ) {
-        e.preventDefault()
-        if (e.shiftKey) {
-            prevItem()
-        } else {
-            if (!hasAudio.value) {
-                fileInputRef.value?.click()
-            } else if (itemsList.value.length === 0) {
-                plainLyricParser()
-            } else {
-                next()
-            }
-        }
+    if (e.code !== 'Space') return
+    const activeNode = (document.activeElement as HTMLElement)?.nodeName || ''
+    if (['INPUT', 'TEXTAREA'].includes(activeNode)) return
+    e.preventDefault()
+    if (e.shiftKey) {
+        prevItem()
+    } else if (!hasAudio.value) {
+        fileInputRef.value?.click()
+    } else if (itemsList.value.length === 0) {
+        plainLyricParser()
+    } else {
+        next()
     }
 }
 
@@ -349,9 +349,7 @@ const plainLyricParser = () => {
                 time: lineData.time,
                 vocalist: lineData.vocalist || 1,
                 words,
-                activeStyle: false,
-                selectedStyle: false,
-                normalStyle: true
+                mode: 'default',
             }
 
             if (lineData.time !== undefined) {
@@ -371,13 +369,15 @@ const plainLyricParser = () => {
                 const activedIndices = lastItem.words
                     .map((w, idx) => (w.actived ? idx : -1))
                     .filter((idx) => idx !== -1)
-                currentWordIndex.value = activedIndices.length > 0 ? activedIndices[activedIndices.length - 1] : -1
+                currentWordIndex.value =
+                    activedIndices.length > 0
+                        ? activedIndices[activedIndices.length - 1]
+                        : -1
             }
         }
 
         // Apply active/selected styles
         updateSelections()
-
     } else {
         const plainLyric = stripLrc(inputText)
         plainLyric.split('\n').forEach((line: string) => {
@@ -386,9 +386,7 @@ const plainLyricParser = () => {
                 text: line,
                 isBg: false,
                 words: isWordByWord.value ? getWordsFromLine(line) : [],
-                activeStyle: false,
-                selectedStyle: false,
-                normalStyle: true
+                mode: 'default',
             })
         })
     }
@@ -404,7 +402,11 @@ const plainLyricParser = () => {
             item.el = el
 
             if (item.time !== undefined) {
-                previewAnim.addElement(el, Number(item.time), wavesurfer ? wavesurfer.getCurrentTime() : 0)
+                previewAnim.addElement(
+                    el,
+                    Number(item.time),
+                    wavesurfer ? wavesurfer.getCurrentTime() : 0,
+                )
             }
 
             if (isWordByWord.value && item.words.length > 0) {
@@ -412,12 +414,16 @@ const plainLyricParser = () => {
                 let spanIdx = 0
                 item.words.forEach((word) => {
                     const spanEl = spanEls[spanIdx] as HTMLElement
-                    if (spanEl && word.beginTime !== undefined && word.endTime !== undefined) {
+                    if (
+                        spanEl &&
+                        word.beginTime !== undefined &&
+                        word.endTime !== undefined
+                    ) {
                         previewAnim.addElement(
                             spanEl,
                             Number(word.beginTime),
                             wavesurfer ? wavesurfer.getCurrentTime() : 0,
-                            Number(word.endTime) - Number(word.beginTime)
+                            Number(word.endTime) - Number(word.beginTime),
                         )
                         spanIdx++
                     }
@@ -426,9 +432,11 @@ const plainLyricParser = () => {
         })
 
         // Scroll
-        const scrollTarget = currentItemIndex.value >= 0 && currentItemIndex.value < itemsList.value.length
-            ? itemRefs.value[currentItemIndex.value]
-            : itemRefs.value[0]
+        const scrollTarget =
+            currentItemIndex.value >= 0 &&
+            currentItemIndex.value < itemsList.value.length
+                ? itemRefs.value[currentItemIndex.value]
+                : itemRefs.value[0]
         if (scrollTarget) {
             scrollToItem(scrollTarget)
         }
@@ -438,31 +446,25 @@ const plainLyricParser = () => {
 // Update reactive style states based on currentItemIndex and currentWordIndex
 const updateSelections = () => {
     itemsList.value.forEach((item, idx) => {
-        item.activeStyle = false
-        item.selectedStyle = false
-        item.normalStyle = false
-
-        if (idx < currentItemIndex.value) {
-            item.activeStyle = true
-        } else if (idx === currentItemIndex.value) {
-            if (isWordByWord.value) {
-                item.activeStyle = true
-            } else {
-                item.activeStyle = true
-            }
+        if (idx < currentItemIndex.value || idx === currentItemIndex.value) {
+            item.mode = 'active'
         } else if (idx === currentItemIndex.value + 1) {
             if (isWordByWord.value) {
-                item.selectedStyle = true
+                item.mode = 'selected'
             } else {
-                item.normalStyle = true
+                item.mode = 'default'
             }
         } else {
-            item.normalStyle = true
+            item.mode = 'default'
         }
     })
 
-    if (currentItemIndex.value === -1 && isWordByWord.value && itemsList.value.length > 0) {
-        itemsList.value[0].selectedStyle = true
+    if (
+        currentItemIndex.value === -1 &&
+        isWordByWord.value &&
+        itemsList.value.length > 0
+    ) {
+        itemsList.value[0].mode = 'selected'
     }
 }
 
@@ -499,7 +501,7 @@ const wordEnd = () => {
                 spanEl,
                 Number(wordEl.beginTime),
                 currentTime,
-                Number(wordEl.endTime) - Number(wordEl.beginTime)
+                Number(wordEl.endTime) - Number(wordEl.beginTime),
             )
         }
     }
@@ -547,7 +549,7 @@ const next = () => {
                         spanEl,
                         Number(prevWord.beginTime),
                         currentTime,
-                        Number(prevWord.endTime) - Number(prevWord.beginTime)
+                        Number(prevWord.endTime) - Number(prevWord.beginTime),
                     )
                 }
             }
@@ -654,7 +656,10 @@ const prevItem = () => {
     } else {
         const prevItemObj = itemsList.value[currentItemIndex.value - 1]
         currentItemIndex.value--
-        const targetEl = currentItemIndex.value === -1 ? itemRefs.value[0] : itemRefs.value[currentItemIndex.value]
+        const targetEl =
+            currentItemIndex.value === -1
+                ? itemRefs.value[0]
+                : itemRefs.value[currentItemIndex.value]
         if (targetEl) scrollToItem(targetEl)
         if (item.time !== undefined) {
             wavesurfer.setTime(Math.max(0, item.time - 1.5))
@@ -679,9 +684,11 @@ const switchVocalist = (item: LyricItem) => {
 
 const handleSwitchVocalistBtn = () => {
     if (itemsList.value.length === 0) return
-    itemsList.value.slice(Math.max(0, currentItemIndex.value)).forEach((item) => {
-        switchVocalist(item)
-    })
+    itemsList.value
+        .slice(Math.max(0, currentItemIndex.value))
+        .forEach((item) => {
+            switchVocalist(item)
+        })
 }
 
 // Edit Modal helpers
@@ -701,7 +708,7 @@ const openEditModal = (item: LyricItem, index: number) => {
             if (word.beginTime !== undefined && word.endTime !== undefined) {
                 editItemTimes.value.push({
                     begin: formatTime(word.beginTime),
-                    end: formatTime(word.endTime)
+                    end: formatTime(word.endTime),
                 })
             }
         })
@@ -721,9 +728,7 @@ const handleAddNewItem = (above: boolean) => {
         isBg: markAsBg.value,
         vocalist: itemsList.value[index]?.vocalist || 1,
         words,
-        activeStyle: false,
-        selectedStyle: false,
-        normalStyle: true
+        mode: 'default',
     }
 
     if (above) {
@@ -786,7 +791,7 @@ const handleSaveItemEdit = () => {
                                 spanEl,
                                 beginVal,
                                 wavesurfer ? wavesurfer.getCurrentTime() : 0,
-                                endVal - beginVal
+                                endVal - beginVal,
                             )
                         }
                     }
@@ -812,7 +817,7 @@ const handleSaveItemEdit = () => {
             previewAnim.addElement(
                 item.el,
                 parsedTime,
-                wavesurfer.getCurrentTime()
+                wavesurfer.getCurrentTime(),
             )
         }
     }
@@ -847,23 +852,64 @@ const handleDownload = () => {
 <template>
     <div>
         <!-- Bottom Audio Player Container -->
-        <div class="fixed z-20 w-screen sm:h-16 h-30 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111] transition-all">
-            <div v-show="hasAudio" class="h-full sm:flex-nowrap flex-wrap gap-4 items-center flex" id="player">
+        <div
+            class="fixed z-20 w-screen sm:h-16 h-30 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111] transition-all"
+        >
+            <div
+                v-show="hasAudio"
+                class="h-full sm:flex-nowrap flex-wrap gap-4 items-center flex"
+                id="player"
+            >
                 <div class="min-w-fit sm:m-0 mx-auto">
-                    <button class="hover:bg-zinc-700 rounded-full w-8 h-8" id="backwardBtn" @click="backward">
-                        <img :src="fastRewindIcon" alt="seek backward icon" class="mx-auto" />
+                    <button
+                        class="hover:bg-zinc-700 rounded-full w-8 h-8"
+                        id="backwardBtn"
+                        @click="backward"
+                    >
+                        <img
+                            :src="fastRewindIcon"
+                            alt="seek backward icon"
+                            class="mx-auto"
+                        />
                     </button>
-                    <button class="hover:bg-zinc-700 rounded-full w-8 h-8" id="playPauseBtn" @click="playPause">
-                        <img :src="playArrowIcon" class="mx-auto" alt="play icon" v-show="!isPlaying" />
-                        <img :src="pauseIcon" alt="pause icon" class="mx-auto" v-show="isPlaying" />
+                    <button
+                        class="hover:bg-zinc-700 rounded-full w-8 h-8"
+                        id="playPauseBtn"
+                        @click="playPause"
+                    >
+                        <img
+                            :src="playArrowIcon"
+                            class="mx-auto"
+                            alt="play icon"
+                            v-show="!isPlaying"
+                        />
+                        <img
+                            :src="pauseIcon"
+                            alt="pause icon"
+                            class="mx-auto"
+                            v-show="isPlaying"
+                        />
                     </button>
-                    <button class="hover:bg-zinc-700 rounded-full w-8 h-8" id="forwardBtn" @click="forward">
-                        <img :src="fastForwardIcon" alt="song seek forward" class="mx-auto" />
+                    <button
+                        class="hover:bg-zinc-700 rounded-full w-8 h-8"
+                        id="forwardBtn"
+                        @click="forward"
+                    >
+                        <img
+                            :src="fastForwardIcon"
+                            alt="song seek forward"
+                            class="mx-auto"
+                        />
                     </button>
                 </div>
 
-                <select name="playbackSpeed" class="bg-zinc-800 text-zinc-100 sm:order-0 -order-1 sm:w-fit w-16"
-                    id="playbackSpeed" :value="playbackSpeed" @change="changePlaybackSpeed">
+                <select
+                    name="playbackSpeed"
+                    class="bg-zinc-800 text-zinc-100 sm:order-0 -order-1 sm:w-fit w-16"
+                    id="playbackSpeed"
+                    :value="playbackSpeed"
+                    @change="changePlaybackSpeed"
+                >
                     <option value="0.25">x0.25</option>
                     <option value="0.5">x0.5</option>
                     <option value="0.75">x0.75</option>
@@ -872,110 +918,217 @@ const handleDownload = () => {
                     <option value="1.5">x1.5</option>
                 </select>
 
-                <div class="flex sm:order-0 -order-2 sm:grow min-w-full sm:min-w-0 items-center gap-2">
-                    <span id="currentTime" class="min-w-10 text-end">{{ currentTimeText }}</span>
+                <div
+                    class="flex sm:order-0 -order-2 sm:grow min-w-full sm:min-w-0 items-center gap-2"
+                >
+                    <span id="currentTime" class="min-w-10 text-end">{{
+                        currentTimeText
+                    }}</span>
                     <div id="waveform" class="min-w-0 w-full"></div>
-                    <span id="duration" class="min-w-10">{{ durationText }}</span>
+                    <span id="duration" class="min-w-10">{{
+                        durationText
+                    }}</span>
                 </div>
 
-                <button class="hover:bg-zinc-700 rounded-full min-w-8 h-8 sm:ms-0 ms-8" id="removeSongBtn"
-                    @click="removeSong">
+                <button
+                    class="hover:bg-zinc-700 rounded-full min-w-8 h-8 sm:ms-0 ms-8"
+                    id="removeSongBtn"
+                    @click="removeSong"
+                >
                     <img :src="closeIcon" alt="remove song" class="mx-auto" />
                 </button>
             </div>
-            <div v-show="!hasAudio" id="fileChooser" class="w-full h-full content-center">
-                <input type="file" name="fileInput" id="file" class="hidden" ref="fileInputRef" @change="sourceFile" />
-                <label for="file"
+            <div
+                v-show="!hasAudio"
+                id="fileChooser"
+                class="w-full h-full content-center"
+            >
+                <input
+                    type="file"
+                    name="fileInput"
+                    id="file"
+                    class="hidden"
+                    ref="fileInputRef"
+                    @change="sourceFile"
+                />
+                <label
+                    for="file"
                     class="block bg-orange-400 content-center text-center font-medium mx-auto w-3/4 max-w-80 h-5/6 text-black rounded-3xl cursor-pointer"
-                    @click.prevent="triggerFileInput">
+                    @click.prevent="triggerFileInput"
+                >
                     Choose File
                 </label>
             </div>
         </div>
 
         <!-- Inputs and Controls Container -->
-        <div class="container container-md p-4 h-[calc(100svh-3rem)] text-center">
-            <textarea dir="auto"
+        <div
+            class="container container-md p-4 h-[calc(100svh-3rem)] text-center"
+        >
+            <textarea
+                dir="auto"
                 class="w-full max-w-3xl h-[calc(100%-13rem)] py-3 px-4 outline-none bg-zinc-950 rounded-3xl focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
-                id="lyricInput" rows="20" placeholder="Enter your lyric text here" required
-                v-model="lyricInput"></textarea>
+                id="lyricInput"
+                rows="20"
+                placeholder="Enter your lyric text here"
+                required
+                v-model="lyricInput"
+            ></textarea>
 
             <div class="max-w-lg px-6 my-2 mx-auto">
                 <label
                     class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-t-2xl cursor-pointer items-center justify-between"
-                    for="isWordByWord">
+                    for="isWordByWord"
+                >
                     <p class="ps-2 text-lg text-start">Sync word-by-word</p>
-                    <input class="hidden peer" type="checkbox" id="isWordByWord" name="isWordByWord"
-                        v-model="isWordByWord" />
+                    <input
+                        class="hidden peer"
+                        type="checkbox"
+                        id="isWordByWord"
+                        name="isWordByWord"
+                        v-model="isWordByWord"
+                    />
                     <label
                         class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-                        for="isWordByWord"></label>
+                        for="isWordByWord"
+                    ></label>
                 </label>
-                <label class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
-                    for="isCharByChar">
-                    <p class="ps-2 text-lg text-start">Character-based syncing</p>
-                    <input class="hidden peer" type="checkbox" id="isCharByChar" name="isCharByChar"
-                        v-model="isCharByChar" />
+                <label
+                    class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
+                    for="isCharByChar"
+                >
+                    <p class="ps-2 text-lg text-start">
+                        Character-based syncing
+                    </p>
+                    <input
+                        class="hidden peer"
+                        type="checkbox"
+                        id="isCharByChar"
+                        name="isCharByChar"
+                        v-model="isCharByChar"
+                    />
                     <label
                         class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-                        for="isCharByChar"></label>
+                        for="isCharByChar"
+                    ></label>
                 </label>
                 <label
                     class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-b-2xl cursor-pointer items-center justify-between"
-                    for="isDuet">
+                    for="isDuet"
+                >
                     <p class="ps-2 text-lg text-start">Enable duet</p>
-                    <input class="hidden peer" type="checkbox" id="isDuet" name="isDuet" v-model="isDuet" />
+                    <input
+                        class="hidden peer"
+                        type="checkbox"
+                        id="isDuet"
+                        name="isDuet"
+                        v-model="isDuet"
+                    />
                     <label
                         class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-                        for="isDuet"></label>
+                        for="isDuet"
+                    ></label>
                 </label>
             </div>
 
             <div class="flex gap-2 justify-center items-center">
                 <div class="flex gap-2 items-center">
-                    <label for="offsetInput" class="text-zinc-300 text-sm">Offset (ms):</label>
-                    <input type="number" id="offsetInput"
+                    <label for="offsetInput" class="text-zinc-300 text-sm"
+                        >Offset (ms):</label
+                    >
+                    <input
+                        type="number"
+                        id="offsetInput"
                         class="w-24 h-8 bg-zinc-800 text-zinc-100 border-2 border-zinc-700 rounded-lg px-2 text-center outline-none focus:border-orange-400 transition-all"
-                        step="10" v-model.number="offsetInput" />
+                        step="10"
+                        v-model.number="offsetInput"
+                    />
                 </div>
-                <input type="file" name="lrcFileInput" id="lrcFile" class="hidden" accept=".lrc" ref="lrcFileInputRef"
-                    @change="handleLrcUpload" />
-                <label for="lrcFile"
+                <input
+                    type="file"
+                    name="lrcFileInput"
+                    id="lrcFile"
+                    class="hidden"
+                    accept=".lrc"
+                    ref="lrcFileInputRef"
+                    @change="handleLrcUpload"
+                />
+                <label
+                    for="lrcFile"
                     class="h-8 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 font-medium rounded-full px-5 leading-8 cursor-pointer transition-colors"
-                    @click.prevent="triggerLrcFileInput">
+                    @click.prevent="triggerLrcFileInput"
+                >
                     Upload Lyrics
                 </label>
-                <button class="h-8 bg-orange-400 text-black font-medium rounded-full px-5" id="plainInputParser"
-                    @click="plainLyricParser">
+                <button
+                    class="h-8 bg-orange-400 text-black font-medium rounded-full px-5"
+                    id="plainInputParser"
+                    @click="plainLyricParser"
+                >
                     Load
                 </button>
             </div>
         </div>
 
         <!-- Lyrics list container -->
-        <div v-show="showSyncer" class="container container-md max-w-3xl p-4 my-28 text-center" id="syncer">
-            <ul class="w-full text-start font-bold overflow-clip" id="lyricList">
-                <li v-for="(item, index) in itemsList" :key="index" :ref="el => { if (el) itemRefs[index] = el as HTMLElement }"
-                    :data-type="item.isBg ? 'bg' : 'normal'" :data-vocalist="isDuet ? item.vocalist : undefined"
+        <div
+            v-show="showSyncer"
+            class="container container-md max-w-3xl p-4 my-28 text-center"
+            id="syncer"
+        >
+            <ul
+                class="w-full text-start font-bold overflow-clip"
+                id="lyricList"
+            >
+                <li
+                    v-for="(item, index) in itemsList"
+                    :key="index"
+                    :ref="
+                        (el) => {
+                            if (el) itemRefs[index] = el as HTMLElement
+                        }
+                    "
+                    :data-type="item.isBg ? 'bg' : 'normal'"
+                    :data-vocalist="isDuet ? item.vocalist : undefined"
                     :data-time="item.time"
-                    class="flex px-5 gap-2 text-zinc-400 items-center rounded first:rounded-t-2xl last:rounded-b-2xl border-1 border-zinc-900 duration-300 ease-out transition-all scroll-mt-[20svh]"
+                    class="flex px-5 gap-2 text-zinc-400 items-center rounded first:rounded-t-2xl last:rounded-b-2xl border border-zinc-900 duration-300 ease-out transition-all scroll-mt-[20svh]"
                     :class="[
                         item.isBg ? 'py-2' : 'py-4',
                         {
-                            'text-zinc-100 cursor-pointer border-zinc-900 bg-zinc-800': item.activeStyle,
-                            'border-orange-400 rounded-b-2xl': item.selectedStyle,
-                            'border-zinc-900 text-zinc-400': item.normalStyle
-                        }
-                    ]" @click="handleItemClick(item)">
-                    <p class="grow text-start transition-all duration-300"
-                        :class="[item.isBg ? '' : 'text-2xl', isDuet && item.vocalist === 2 ? 'text-end' : 'text-start']"
-                        :dir="rtlCharsPattern.test(item.text) ? 'rtl' : 'auto'">
+                            'text-zinc-100 cursor-pointer border-zinc-900 bg-zinc-800':
+                                item.mode === 'active',
+                            'border-orange-400 rounded-b-2xl':
+                                item.mode === 'selected',
+                            'border-zinc-900 text-zinc-400':
+                                item.mode === 'default',
+                        },
+                    ]"
+                    @click="handleItemClick(item)"
+                >
+                    <p
+                        class="grow text-start transition-all duration-300"
+                        :class="[
+                            item.isBg ? '' : 'text-2xl',
+                            isDuet && item.vocalist === 2
+                                ? 'text-end'
+                                : 'text-start',
+                        ]"
+                        :dir="rtlCharsPattern.test(item.text) ? 'rtl' : 'auto'"
+                    >
                         <!-- Render words if word-by-word is enabled -->
                         <template v-if="isWordByWord && item.words.length > 0">
-                            <span v-for="(word, wordIdx) in item.words" :key="wordIdx" class="word" :class="[
-                                { 'rtl': rtlCharsPattern.test(word.text) },
-                                { 'actived': word.actived }
-                            ]" :data-type="word.type" :data-begin-time="word.beginTime" :data-end-time="word.endTime">
+                            <span
+                                v-for="(word, wordIdx) in item.words"
+                                :key="wordIdx"
+                                class="word"
+                                :class="[
+                                    { rtl: rtlCharsPattern.test(word.text) },
+                                    { actived: word.actived },
+                                ]"
+                                :data-type="word.type"
+                                :data-begin-time="word.beginTime"
+                                :data-end-time="word.endTime"
+                            >
                                 {{ word.text }}
                             </span>
                         </template>
@@ -984,100 +1137,207 @@ const handleDownload = () => {
                             {{ item.text }}
                         </template>
                     </p>
-                    <img class="mx-2 cursor-pointer" :src="editIconSvg" :width="20" @click.stop="openEditModal(item, index)" />
+                    <img
+                        class="mx-2 cursor-pointer"
+                        :src="editIconSvg"
+                        :width="20"
+                        @click.stop="openEditModal(item, index)"
+                    />
                 </li>
             </ul>
 
-            <button class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2" id="dlFile"
-                @click="handleDownload">
+            <button
+                class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2"
+                id="dlFile"
+                @click="handleDownload"
+            >
                 Save
             </button>
         </div>
 
         <!-- Floating action buttons -->
-        <button class="fixed left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
-            id="switchVocalistBtn" :class="[
-                isDuet ? (isWordByWord ? 'sm:bottom-37 bottom-51' : 'sm:bottom-20 bottom-34') : 'bottom-0'
-            ]" @click="handleSwitchVocalistBtn">
+        <button
+            class="fixed left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all"
+            id="switchVocalistBtn"
+            :class="[
+                isDuet
+                    ? isWordByWord
+                        ? 'sm:bottom-37 bottom-51'
+                        : 'sm:bottom-20 bottom-34'
+                    : 'bottom-0',
+            ]"
+            @click="handleSwitchVocalistBtn"
+        >
             Switch Vocalist
         </button>
-        <button class="fixed left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border-1 shadow-xl/30 text-zinc-100 rounded-xl transition-all"
-            id="wordEndBtn" :class="[
-                isWordByWord ? 'sm:bottom-20 bottom-34' : 'bottom-0'
-            ]" @click="wordEnd">
+        <button
+            class="fixed left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all"
+            id="wordEndBtn"
+            :class="[isWordByWord ? 'sm:bottom-20 bottom-34' : 'bottom-0']"
+            @click="wordEnd"
+        >
             Word End
         </button>
-        <button class="fixed right-4 bottom-0 h-14 w-14 bg-zinc-800 border-orange-400 border-1 shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150 sm:bottom-37 bottom-51"
-            id="prevItemBtn" @click="prevItem">
+        <button
+            class="fixed right-4 h-14 w-14 bg-zinc-800 border-orange-400 border shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150 sm:bottom-37 bottom-51"
+            id="prevItemBtn"
+            @click="prevItem"
+        >
             Back
         </button>
-        <button class="fixed right-4 bottom-0 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all sm:bottom-20 bottom-34"
-            id="nextItemBtn" @click="next">
+        <button
+            class="fixed right-4 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all sm:bottom-20 bottom-34"
+            id="nextItemBtn"
+            @click="next"
+        >
             Next
         </button>
 
         <!-- Edit Item Modal -->
-        <dialog class="backdrop:bg-black/80 m-auto p-4 rounded-lg bg-zinc-900 text-zinc-100" id="editItemModal"
-            ref="editItemModal">
+        <dialog
+            class="backdrop:bg-black/80 m-auto p-4 rounded-lg bg-zinc-900 text-zinc-100"
+            id="editItemModal"
+            ref="editItemModal"
+        >
             <form method="dialog" @submit.prevent>
                 <div id="editItemContent" class="text-zinc-100 mb-2">
                     <!-- Standard text/timestamp input -->
-                    <textarea rows="1" id="editItemInput" type="text" name="editItemInput" dir="auto"
+                    <textarea
+                        rows="1"
+                        id="editItemInput"
+                        type="text"
+                        name="editItemInput"
+                        dir="auto"
                         class="w-full min-w-80 bg-zinc-900 text-zinc-100 disabled:text-zinc-400 disabled:bg-zinc-800 outline-none rounded-md m-1 p-2 border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
-                        v-model="editItemText" :disabled="isWordByWord && editItemIndex !== null && editItemIndex < currentItemIndex"></textarea>
+                        v-model="editItemText"
+                        :disabled="
+                            isWordByWord &&
+                            editItemIndex !== null &&
+                            editItemIndex < currentItemIndex
+                        "
+                    ></textarea>
 
                     <!-- Render dynamic word timing inputs if Word-by-word is enabled and active -->
-                    <template v-if="isWordByWord && editItemIndex !== null && editItemIndex < currentItemIndex && editItemTimes.length > 0">
-                        <div v-for="(t, i) in editItemTimes" :key="i" class="w-full flex gap-2 my-2 mx-1">
-                            <input type="text" class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 w-22 bg-zinc-800 text-zinc-100 border-zinc-800 text-center text-sm"
-                                v-model="t.begin" />
-                            <input type="text" class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 grow min-w-28 bg-zinc-900 text-zinc-100 border-zinc-700 text-start"
-                                v-model="editItemTimes[i].begin" style="display: none;" /> <!-- Helper placeholder to match original -->
-                            <input type="text" class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 grow min-w-28 bg-zinc-900 text-zinc-100 border-zinc-700 text-start"
-                                :value="itemsList[editItemIndex].words[i]?.text" dir="auto" disabled />
-                            <input type="text" class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 w-22 bg-zinc-800 text-zinc-100 border-zinc-800 text-center text-sm"
-                                v-model="t.end" />
+                    <template
+                        v-if="
+                            isWordByWord &&
+                            editItemIndex !== null &&
+                            editItemIndex < currentItemIndex &&
+                            editItemTimes.length > 0
+                        "
+                    >
+                        <div
+                            v-for="(t, i) in editItemTimes"
+                            :key="i"
+                            class="w-full flex gap-2 my-2 mx-1"
+                        >
+                            <input
+                                type="text"
+                                class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 w-22 bg-zinc-800 text-zinc-100 border-zinc-800 text-center text-sm"
+                                v-model="t.begin"
+                            />
+                            <input
+                                type="text"
+                                class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 grow min-w-28 bg-zinc-900 text-zinc-100 border-zinc-700 text-start"
+                                v-model="editItemTimes[i].begin"
+                                style="display: none"
+                            />
+                            <!-- Helper placeholder to match original -->
+                            <input
+                                type="text"
+                                class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 grow min-w-28 bg-zinc-900 text-zinc-100 border-zinc-700 text-start"
+                                :value="itemsList[editItemIndex].words[i]?.text"
+                                dir="auto"
+                                disabled
+                            />
+                            <input
+                                type="text"
+                                class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 w-22 bg-zinc-800 text-zinc-100 border-zinc-800 text-center text-sm"
+                                v-model="t.end"
+                            />
                         </div>
                     </template>
 
                     <!-- Render simple line timestamp input if line-by-line has timestamps -->
-                    <template v-if="!isWordByWord && editItemIndex !== null && itemsList[editItemIndex]?.time !== undefined">
-                        <input type="text" class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 w-24 my-2 mx-1 text-center bg-zinc-800 text-zinc-100 border-zinc-800"
-                            v-model="editItemLineTime" />
+                    <template
+                        v-if="
+                            !isWordByWord &&
+                            editItemIndex !== null &&
+                            itemsList[editItemIndex]?.time !== undefined
+                        "
+                    >
+                        <input
+                            type="text"
+                            class="h-8 outline-none rounded-md p-1 transition-all ease-in-out duration-300 border-2 focus:border-orange-400 w-24 my-2 mx-1 text-center bg-zinc-800 text-zinc-100 border-zinc-800"
+                            v-model="editItemLineTime"
+                        />
                     </template>
                 </div>
                 <div class="flex flex-col gap-0.5 items-start">
                     <div class="px-2 text-zinc-300 rounded-full">
-                        <input class="accent-orange-400" id="markAsBg" type="checkbox" name="markAsBg"
-                            v-model="markAsBg" />
-                        <label class="px-1" for="markAsBg">Mark as background vocal</label>
+                        <input
+                            class="accent-orange-400"
+                            id="markAsBg"
+                            type="checkbox"
+                            name="markAsBg"
+                            v-model="markAsBg"
+                        />
+                        <label class="px-1" for="markAsBg"
+                            >Mark as background vocal</label
+                        >
                     </div>
-                    <button class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
-                        id="addItemAboveBtn" :disabled="editItemIndex === null || editItemIndex <= currentItemIndex"
-                        @click="handleAddNewItem(true)">
+                    <button
+                        class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
+                        id="addItemAboveBtn"
+                        :disabled="
+                            editItemIndex === null ||
+                            editItemIndex <= currentItemIndex
+                        "
+                        @click="handleAddNewItem(true)"
+                    >
                         Add Above
                     </button>
-                    <button class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
-                        id="addItemBelowBtn" :disabled="editItemIndex === null || editItemIndex < currentItemIndex"
-                        @click="handleAddNewItem(false)">
+                    <button
+                        class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
+                        id="addItemBelowBtn"
+                        :disabled="
+                            editItemIndex === null ||
+                            editItemIndex < currentItemIndex
+                        "
+                        @click="handleAddNewItem(false)"
+                    >
                         Add Below
                     </button>
-                    <button class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
-                        id="editItemRemove" @click="handleRemoveItem">
+                    <button
+                        class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
+                        id="editItemRemove"
+                        @click="handleRemoveItem"
+                    >
                         Remove
                     </button>
                 </div>
                 <div class="flex justify-end">
-                    <button class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
-                        id="editItemCancel" @click="editItemModal?.close()">
+                    <button
+                        class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
+                        id="editItemCancel"
+                        @click="editItemModal?.close()"
+                    >
                         Cancel
                     </button>
-                    <button class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
-                        id="editItemDone" @click="handleSaveItemEdit">
+                    <button
+                        class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
+                        id="editItemDone"
+                        @click="handleSaveItemEdit"
+                    >
                         Save
                     </button>
                 </div>
-                <input id="editItemIndex" type="hidden" name="editItemIndex" :value="editItemIndex" />
+                <input
+                    id="editItemIndex"
+                    type="hidden"
+                    name="editItemIndex"
+                    :value="editItemIndex"
+                />
             </form>
         </dialog>
     </div>
