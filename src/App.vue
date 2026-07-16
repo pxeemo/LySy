@@ -240,7 +240,7 @@ const backward = () => {
     let target = current - 6 * wavesurfer.getPlaybackRate()
     target = Math.min(duration, Math.max(0, target))
     wavesurfer.setTime(target)
-    previewAnim.refresh(target, 1 / wavesurfer.getPlaybackRate())
+    previewAnim.refresh(target, 1 / wavesurfer.getPlaybackRate(), isWordByWord.value)
 }
 
 const forward = () => {
@@ -251,7 +251,7 @@ const forward = () => {
     let target = current + 5 * wavesurfer.getPlaybackRate()
     target = Math.max(0, Math.min(duration, target))
     wavesurfer.setTime(target)
-    previewAnim.refresh(target, 1 / wavesurfer.getPlaybackRate())
+    previewAnim.refresh(target, 1 / wavesurfer.getPlaybackRate(), isWordByWord.value)
 }
 
 const playPause = () => {
@@ -268,6 +268,7 @@ const changePlaybackSpeed = (e: Event) => {
         previewAnim.refresh(
             wavesurfer.getCurrentTime(),
             1 / wavesurfer.getPlaybackRate(),
+            isWordByWord.value,
         )
     }
 }
@@ -375,9 +376,6 @@ const plainLyricParser = () => {
                         : -1
             }
         }
-
-        // Apply active/selected styles
-        updateSelections()
     } else {
         const plainLyric = stripLrc(inputText)
         plainLyric.split('\n').forEach((line: string) => {
@@ -391,6 +389,7 @@ const plainLyricParser = () => {
         })
     }
 
+    updateSelections()
     showSyncer.value = true
 
     // Next tick: register elements to previewAnim and scroll
@@ -446,14 +445,10 @@ const plainLyricParser = () => {
 // Update reactive style states based on currentItemIndex and currentWordIndex
 const updateSelections = () => {
     itemsList.value.forEach((item, idx) => {
-        if (idx < currentItemIndex.value || idx === currentItemIndex.value) {
+        if (idx < currentItemIndex.value) {
             item.mode = 'active'
-        } else if (idx === currentItemIndex.value + 1) {
-            if (isWordByWord.value) {
-                item.mode = 'selected'
-            } else {
-                item.mode = 'default'
-            }
+        } else if (idx === currentItemIndex.value) {
+            item.mode = isWordByWord.value ? 'selected' : 'active'
         } else {
             item.mode = 'default'
         }
@@ -475,7 +470,7 @@ const scrollToItem = (el: HTMLElement) => {
 const handleItemClick = (item: LyricItem) => {
     if (item.time === undefined || !wavesurfer) return
     wavesurfer.setTime(item.time)
-    previewAnim.refresh(item.time, 1 / wavesurfer.getPlaybackRate())
+    previewAnim.refresh(item.time, 1 / wavesurfer.getPlaybackRate(), isWordByWord.value)
 }
 
 const wordEnd = () => {
@@ -631,7 +626,6 @@ const clearLine = (item: LyricItem) => {
 const prevItem = () => {
     if (currentItemIndex.value < 0 || !wavesurfer) return
     const item = itemsList.value[currentItemIndex.value]
-    if (!item) return
 
     if (isWordByWord.value) {
         if (currentWordIndex.value === -1 && currentItemIndex.value !== 0) {
@@ -650,11 +644,10 @@ const prevItem = () => {
             if (item.time !== undefined) {
                 wavesurfer.setTime(Math.max(0, item.time - 1.5))
             }
-            clearLine(item)
+            if (item) clearLine(item)
             currentWordIndex.value = -1
         }
     } else {
-        const prevItemObj = itemsList.value[currentItemIndex.value - 1]
         currentItemIndex.value--
         const targetEl =
             currentItemIndex.value === -1
@@ -671,6 +664,7 @@ const prevItem = () => {
     previewAnim.refresh(
         wavesurfer.getCurrentTime(),
         1 / wavesurfer.getPlaybackRate(),
+        isWordByWord.value,
     )
 }
 
@@ -1091,13 +1085,13 @@ const handleDownload = () => {
                     :data-type="item.isBg ? 'bg' : 'normal'"
                     :data-vocalist="isDuet ? item.vocalist : undefined"
                     :data-time="item.time"
-                    class="flex px-5 gap-2 text-zinc-400 items-center rounded first:rounded-t-2xl last:rounded-b-2xl border border-zinc-900 duration-300 ease-out transition-all scroll-mt-[20svh]"
+                    class="flex px-5 gap-2 items-center rounded first:rounded-t-2xl last:rounded-b-2xl border duration-300 ease-out transition-all scroll-mt-[20svh]"
                     :class="[
                         item.isBg ? 'py-2' : 'py-4',
                         {
                             'text-zinc-100 cursor-pointer border-zinc-900 bg-zinc-800':
                                 item.mode === 'active',
-                            'border-orange-400 rounded-b-2xl':
+                            'border-orange-400 text-zinc-400 rounded-b-2xl':
                                 item.mode === 'selected',
                             'border-zinc-900 text-zinc-400':
                                 item.mode === 'default',

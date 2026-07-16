@@ -80,10 +80,13 @@ export class AnimationManager {
         })
     }
 
-    refresh(currentTime, playbackSpeed) {
+    refresh(currentTime, playbackSpeed, isWordByWord) {
         this.animations.forEach((anim, element) => {
             anim.remainingDelay = (anim.delay - currentTime) * playbackSpeed
-            if (anim.delay + anim.duration <= currentTime) {
+            if (
+                anim.delay + anim.duration <= currentTime ||
+                (!isWordByWord && anim.delay <= currentTime)
+            ) {
                 element.style.animationDuration = '0'
                 element.style.animationName = ''
                 element.classList.add('actived')
