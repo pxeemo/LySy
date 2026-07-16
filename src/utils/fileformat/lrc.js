@@ -97,40 +97,54 @@ export function parseLrc(text) {
 export function generateLrc(itemsList, isWordByWord, isDuet) {
     let text = '[by:Generated using LySy]\n'
     itemsList.forEach((item) => {
-        const time = item.dataset.time
-        if (typeof time == 'undefined') return
+        // Support both reactive objects and standard DOM elements
+        const time = item.time !== undefined ? item.time : (item.dataset ? item.dataset.time : undefined)
+        if (time === undefined || time === null) return
 
-        if (item.dataset.type == 'normal') {
+        const isBg = item.isBg !== undefined ? item.isBg : (item.dataset ? item.dataset.type === 'bg' : false)
+        const vocalist = item.vocalist !== undefined ? item.vocalist : (item.dataset ? item.dataset.vocalist : 1)
+
+        if (!isBg) {
             text += `[${formatTime(time)}]`
-            if (isDuet) text += item.dataset.vocalist == 1 ? 'v1:' : 'v2:'
+            if (isDuet) text += (vocalist == 1) ? 'v1:' : 'v2:'
         } else {
             // removes extra line break from the previous loop
             text = text.slice(0, -1) + ' [bg:'
         }
 
         if (isWordByWord) {
-            const words = Array.from(item.children[0].children)
+            const words = item.words !== undefined ? item.words : (item.children ? Array.from(item.children[0].children) : [])
             text += `<${formatTime(time)}>`
             words.forEach((word, index) => {
-                const beginTime = `<${formatTime(word.dataset.beginTime)}>`
+                const wBeginTime = word.beginTime !== undefined ? word.beginTime : (word.dataset ? word.dataset.beginTime : undefined)
+                const wEndTime = word.endTime !== undefined ? word.endTime : (word.dataset ? word.dataset.endTime : undefined)
+                const wType = word.type !== undefined ? word.type : (word.dataset ? word.dataset.type : '')
+                const wText = word.text !== undefined ? word.text : (word.innerText || '')
+
+                const beginTimeStr = `<${formatTime(wBeginTime)}>`
 
                 // don't duplicate when words share timestamps
-                if (!text.endsWith(beginTime)) text += beginTime
+                if (!text.endsWith(beginTimeStr)) text += beginTimeStr
 
-                text += word.innerText
+                text += wText
 
                 // add space if it's not a syllable
                 // and it's not the last word of the line
-                if (word.dataset.type == 'word' && index + 1 != words.length)
-                    text += ' '
+                if (wType === 'word' && index + 1 !== words.length) {
+                    // avoid duplicate space if text already ends with space
+                    if (!text.endsWith(' ') && !wText.endsWith(' ')) {
+                        text += ' '
+                    }
+                }
 
-                text += `<${formatTime(word.dataset.endTime)}>`
+                text += `<${formatTime(wEndTime)}>`
             })
         } else {
-            text += `${item.children[0].innerText}`
+            const itemText = item.text !== undefined ? item.text : (item.children ? item.children[0].innerText : '')
+            text += `${itemText}`
         }
 
-        if (item.dataset.type == 'bg') text += ']'
+        if (isBg) text += ']'
         text += '\n'
     })
 
