@@ -12,27 +12,7 @@ import pauseIcon from './assets/pause.svg'
 import fastForwardIcon from './assets/fast_forward.svg'
 import closeIcon from './assets/close.svg'
 import editIconSvg from './assets/edit.svg'
-
-// Interfaces
-interface WordItem {
-    type: 'part' | 'word'
-    text: string
-    beginTime?: number
-    endTime?: number
-    actived?: boolean
-}
-
-interface LyricItem {
-    text: string
-    isBg?: boolean
-    time?: number
-    vocalist?: number
-    words: WordItem[]
-    // For rendering class list dynamically
-    mode: 'active' | 'selected' | 'default'
-    // Store DOM elements when generated for preview animation
-    el?: HTMLElement | null
-}
+import { LyricItem, WordItem } from './types/global.type'
 
 // State
 const lyricInput = ref('')
