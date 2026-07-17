@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import WaveSurfer from 'wavesurfer.js'
 import { AnimationManager } from './utils/previewAnimation'
 import { generateLrc, parseLrc, stripLrc } from './utils/fileformat/lrc'
 import { formatTime, deformatTime } from './utils/helpers'
+import { useWaveSurfer } from './composables/useWaveSurfer'
+import AudioPlayer from './components/AudioPlayer.vue'
 
 // Assets
-import fastRewindIcon from './assets/fast_rewind.svg'
-import playArrowIcon from './assets/play_arrow.svg'
-import pauseIcon from './assets/pause.svg'
-import fastForwardIcon from './assets/fast_forward.svg'
-import closeIcon from './assets/close.svg'
 import editIconSvg from './assets/edit.svg'
 import { LyricItem, WordItem } from './types/global.type'
 
@@ -23,20 +19,25 @@ const offsetInput = ref(0)
 const itemsList = ref<LyricItem[]>([])
 const currentItemIndex = ref(-1)
 const currentWordIndex = ref(-1)
-const isPlaying = ref(false)
-const currentTimeText = ref('0:00')
-const durationText = ref('0:00')
-const hasAudio = ref(false)
-const zoomLevel = ref(50)
-const playbackSpeed = ref('1')
 const showSyncer = ref(false)
+
+// Composables
+const {
+  wavesurfer,
+  hasAudio,
+  isPlaying,
+  playbackSpeed,
+  playPause,
+  getCurrentTime,
+  getPlaybackRate,
+  setTime,
+} = useWaveSurfer()
 
 // File handling
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const lrcFileInputRef = ref<HTMLInputElement | null>(null)
 
-// WaveSurfer and Animation manager instances
-let wavesurfer: WaveSurfer | null = null
+// Animation manager instance
 const previewAnim = new AnimationManager()
 
 // Modal states
@@ -52,86 +53,48 @@ const itemRefs = ref<(HTMLElement | null)[]>([])
 
 const rtlCharsPattern = /^[\u0590-\u08FF\uFB1D-\uFDFD\uFE70-\uFEFC]/
 
-// Setup wavesurfer
+// Setup wavesurfer subscriptions or lifecycle logic if any
 onMounted(() => {
-  wavesurfer = WaveSurfer.create({
-    container: '#waveform',
-    waveColor: '#9ca3af',
-    progressColor: '#fc792b',
-    height: 50,
-    dragToSeek: false,
-    hideScrollbar: true,
-    cursorWidth: 2,
-    barWidth: 4,
-    barGap: 2,
-    barRadius: 99,
-    minPxPerSec: 50,
-  })
-
-  wavesurfer.on('timeupdate', () => {
-    if (wavesurfer) {
-      currentTimeText.value = formatTime(
-        wavesurfer.getCurrentTime(),
-        false,
-      )
-    }
-  })
-
-  wavesurfer.on('decode', () => {
-    if (wavesurfer) {
-      durationText.value = formatTime(wavesurfer.getDuration(), false)
-    }
-  })
-
-  wavesurfer.on('play', () => {
-    isPlaying.value = true
-    if (wavesurfer) {
-      previewAnim.play(
-        wavesurfer.getCurrentTime(),
-        1 / wavesurfer.getPlaybackRate(),
-      )
-    }
-  })
-
-  wavesurfer.on('pause', () => {
-    isPlaying.value = false
-    previewAnim.pause()
-  })
-
-  // Setup wheel zoom event
-  const waveformEl = document.getElementById('waveform')
-  if (waveformEl) {
-    waveformEl.addEventListener('wheel', handleWaveformWheel, {
-      passive: false,
-    })
-  }
-
   // Setup global spacebar hotkey
   window.addEventListener('keydown', handleGlobalKeydown)
 })
 
 onUnmounted(() => {
-  if (wavesurfer) {
-    wavesurfer.destroy()
-  }
-  const waveformEl = document.getElementById('waveform')
-  if (waveformEl) {
-    waveformEl.removeEventListener('wheel', handleWaveformWheel)
-  }
   window.removeEventListener('keydown', handleGlobalKeydown)
 })
 
-const handleWaveformWheel = (e: WheelEvent) => {
-  if (!wavesurfer) return
-  const absX = Math.abs(e.deltaX)
-  const absY = Math.abs(e.deltaY)
-  if (absX > absY || e.shiftKey) return
-  e.preventDefault()
-  let level =
-        zoomLevel.value - Math.sign(e.deltaY) * Math.ceil(zoomLevel.value / 10)
-  level = Math.min(300, Math.max(1, level))
-  zoomLevel.value = level
-  wavesurfer.zoom(level)
+// Listeners for wavesurfer events that are needed in App.vue
+// We watch wavesurfer to attach animations correctly once it gets initialized
+watch(wavesurfer, (ws, oldWs) => {
+  if (oldWs) {
+    oldWs.un('play', playHandler)
+    oldWs.un('pause', pauseHandler)
+  }
+  if (ws) {
+    ws.on('play', playHandler)
+    ws.on('pause', pauseHandler)
+  }
+})
+
+const playHandler = () => {
+  if (wavesurfer.value) {
+    previewAnim.play(
+      wavesurfer.value.getCurrentTime(),
+      1 / wavesurfer.value.getPlaybackRate(),
+    )
+  }
+}
+
+const pauseHandler = () => {
+  previewAnim.pause()
+}
+
+const handleAudioSeek = (target: number) => {
+  previewAnim.refresh(
+    target,
+    1 / getPlaybackRate(),
+    isWordByWord.value,
+  )
 }
 
 const handleGlobalKeydown = (e: KeyboardEvent) => {
@@ -142,7 +105,8 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
   if (e.shiftKey) {
     prevItem()
   } else if (!hasAudio.value) {
-    fileInputRef.value?.click()
+    const chooseBtn = document.querySelector('#fileChooser label') as HTMLElement
+    chooseBtn?.click()
   } else if (itemsList.value.length === 0) {
     plainLyricParser()
   } else {
@@ -172,23 +136,8 @@ watch(isDuet, () => {
   }
 })
 
-// Navigation & Actions
-const triggerFileInput = () => {
-  fileInputRef.value?.click()
-}
-
 const triggerLrcFileInput = () => {
   lrcFileInputRef.value?.click()
-}
-
-const sourceFile = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file && wavesurfer) {
-    const audioURL = URL.createObjectURL(file)
-    wavesurfer.load(audioURL)
-    hasAudio.value = true
-  }
 }
 
 const handleLrcUpload = (e: Event) => {
@@ -205,60 +154,12 @@ const handleLrcUpload = (e: Event) => {
   }
 }
 
-const removeSong = () => {
-  if (wavesurfer) {
-    wavesurfer.empty()
-  }
-  hasAudio.value = false
+const handleAudioLoaded = (file: File) => {
+  // Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
 }
 
-const backward = () => {
-  if (!wavesurfer) return
-  const duration = wavesurfer.getDuration()
-  if (!duration) return
-  const current = wavesurfer.getCurrentTime()
-  let target = current - 6 * wavesurfer.getPlaybackRate()
-  target = Math.min(duration, Math.max(0, target))
-  wavesurfer.setTime(target)
-  previewAnim.refresh(
-    target,
-    1 / wavesurfer.getPlaybackRate(),
-    isWordByWord.value,
-  )
-}
-
-const forward = () => {
-  if (!wavesurfer) return
-  const duration = wavesurfer.getDuration()
-  if (!duration) return
-  const current = wavesurfer.getCurrentTime()
-  let target = current + 5 * wavesurfer.getPlaybackRate()
-  target = Math.max(0, Math.min(duration, target))
-  wavesurfer.setTime(target)
-  previewAnim.refresh(
-    target,
-    1 / wavesurfer.getPlaybackRate(),
-    isWordByWord.value,
-  )
-}
-
-const playPause = () => {
-  if (wavesurfer) {
-    wavesurfer.playPause()
-  }
-}
-
-const changePlaybackSpeed = (e: Event) => {
-  const target = e.target as HTMLSelectElement
-  playbackSpeed.value = target.value
-  if (wavesurfer) {
-    wavesurfer.setPlaybackRate(parseFloat(playbackSpeed.value))
-    previewAnim.refresh(
-      wavesurfer.getCurrentTime(),
-      1 / wavesurfer.getPlaybackRate(),
-      isWordByWord.value,
-    )
-  }
+const handleAudioRemoved = () => {
+  // Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
 }
 
 // Lyric splitting helpers
@@ -392,7 +293,7 @@ const plainLyricParser = () => {
         previewAnim.addElement(
           el,
           item.beginTime,
-          wavesurfer ? wavesurfer.getCurrentTime() : 0,
+          getCurrentTime(),
         )
       }
 
@@ -409,7 +310,7 @@ const plainLyricParser = () => {
             previewAnim.addElement(
               spanEl,
               Number(word.beginTime),
-              wavesurfer ? wavesurfer.getCurrentTime() : 0,
+              getCurrentTime(),
               Number(word.endTime) - Number(word.beginTime),
             )
             spanIdx++
@@ -456,17 +357,17 @@ const scrollToItem = (el: HTMLElement) => {
 }
 
 const handleItemClick = (item: LyricItem) => {
-  if (item.beginTime === undefined || !wavesurfer) return
-  wavesurfer.setTime(item.beginTime)
+  if (item.beginTime === undefined) return
+  setTime(item.beginTime)
   previewAnim.refresh(
     item.beginTime,
-    1 / wavesurfer.getPlaybackRate(),
+    1 / getPlaybackRate(),
     isWordByWord.value,
   )
 }
 
 const wordEnd = () => {
-  if (!wavesurfer || currentItemIndex.value === -1) return
+  if (currentItemIndex.value === -1) return
   const currentItem = itemsList.value[currentItemIndex.value]
   if (!currentItem || currentItem.words.length === 0) return
 
@@ -474,7 +375,7 @@ const wordEnd = () => {
   if (!wordEl || wordEl.beginTime === undefined) return
 
   const offset = offsetInput.value / 1000
-  const currentTime = Math.max(0, wavesurfer.getCurrentTime() + offset)
+  const currentTime = Math.max(0, getCurrentTime() + offset)
   wordEl.endTime = currentTime
   wordEl.actived = true
 
@@ -509,9 +410,8 @@ const wordEnd = () => {
 }
 
 const next = () => {
-  if (!wavesurfer) return
   const offset = offsetInput.value / 1000
-  const currentTime = Math.max(0, wavesurfer.getCurrentTime() + offset)
+  const currentTime = Math.max(0, getCurrentTime() + offset)
 
   if (isWordByWord.value) {
     if (currentItemIndex.value === -1) {
@@ -616,7 +516,7 @@ const clearLine = (item: LyricItem) => {
 }
 
 const prevItem = () => {
-  if (currentItemIndex.value < 0 || !wavesurfer) return
+  if (currentItemIndex.value < 0) return
   const item = itemsList.value[currentItemIndex.value]
 
   if (isWordByWord.value) {
@@ -626,7 +526,7 @@ const prevItem = () => {
         const prevEl = itemRefs.value[currentItemIndex.value - 1]
         if (prevEl) scrollToItem(prevEl)
         if (prevItemObj.beginTime !== undefined) {
-          wavesurfer.setTime(Math.max(0, prevItemObj.beginTime - 1.5))
+          setTime(Math.max(0, prevItemObj.beginTime - 1.5))
         }
         clearLine(prevItemObj)
         currentItemIndex.value--
@@ -634,7 +534,7 @@ const prevItem = () => {
       }
     } else if (currentWordIndex.value !== -1) {
       if (item.beginTime !== undefined) {
-        wavesurfer.setTime(Math.max(0, item.beginTime - 1.5))
+        setTime(Math.max(0, item.beginTime - 1.5))
       }
       if (item) clearLine(item)
       currentWordIndex.value = -1
@@ -647,15 +547,15 @@ const prevItem = () => {
               : itemRefs.value[currentItemIndex.value]
     if (targetEl) scrollToItem(targetEl)
     if (item.beginTime !== undefined) {
-      wavesurfer.setTime(Math.max(0, item.beginTime - 1.5))
+      setTime(Math.max(0, item.beginTime - 1.5))
     }
     updateSelections()
     clearLine(item)
   }
 
   previewAnim.refresh(
-    wavesurfer.getCurrentTime(),
-    1 / wavesurfer.getPlaybackRate(),
+    getCurrentTime(),
+    1 / getPlaybackRate(),
     isWordByWord.value,
   )
 }
@@ -749,7 +649,7 @@ const handleRemoveItem = () => {
 }
 
 const handleSaveItemEdit = () => {
-  if (editItemIndex.value === null || !wavesurfer) return
+  if (editItemIndex.value === null) return
   const index = editItemIndex.value
   const item = itemsList.value[index]
   if (!item) return
@@ -776,7 +676,7 @@ const handleSaveItemEdit = () => {
               previewAnim.addElement(
                 spanEl,
                 beginVal,
-                wavesurfer ? wavesurfer.getCurrentTime() : 0,
+                getCurrentTime(),
                 endVal - beginVal,
               )
             }
@@ -803,7 +703,7 @@ const handleSaveItemEdit = () => {
       previewAnim.addElement(
         item.el,
         parsedTime,
-        wavesurfer.getCurrentTime(),
+        getCurrentTime(),
       )
     }
   }
@@ -820,7 +720,9 @@ const handleDownload = () => {
     return
   }
   const text = generateLrc(itemsList.value, isWordByWord.value, isDuet.value)
-  const inputFileName = fileInputRef.value?.files?.[0]?.name || 'lyrics.mp3'
+  // Retrieve target filename using DOM elements
+  const inputEl = document.querySelector('#file') as HTMLInputElement | null
+  const inputFileName = inputEl?.files?.[0]?.name || 'lyrics.mp3'
   const filename = inputFileName.replace(/(\.\w+?)?$/, '.lrc')
 
   const blob = new Blob([text])
@@ -837,140 +739,12 @@ const handleDownload = () => {
 
 <template>
   <div>
-    <!-- Bottom Audio Player Container -->
-    <div
-      class="fixed z-20 w-screen sm:h-16 h-30 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111] transition-all"
-    >
-      <div
-        v-show="hasAudio"
-        id="player"
-        class="h-full sm:flex-nowrap flex-wrap gap-4 items-center flex"
-      >
-        <div class="min-w-fit sm:m-0 mx-auto">
-          <button
-            id="backwardBtn"
-            class="hover:bg-zinc-700 rounded-full w-8 h-8"
-            @click="backward"
-          >
-            <img
-              :src="fastRewindIcon"
-              alt="seek backward icon"
-              class="mx-auto"
-            >
-          </button>
-          <button
-            id="playPauseBtn"
-            class="hover:bg-zinc-700 rounded-full w-8 h-8"
-            @click="playPause"
-          >
-            <img
-              v-show="!isPlaying"
-              :src="playArrowIcon"
-              class="mx-auto"
-              alt="play icon"
-            >
-            <img
-              v-show="isPlaying"
-              :src="pauseIcon"
-              alt="pause icon"
-              class="mx-auto"
-            >
-          </button>
-          <button
-            id="forwardBtn"
-            class="hover:bg-zinc-700 rounded-full w-8 h-8"
-            @click="forward"
-          >
-            <img
-              :src="fastForwardIcon"
-              alt="song seek forward"
-              class="mx-auto"
-            >
-          </button>
-        </div>
-
-        <select
-          id="playbackSpeed"
-          name="playbackSpeed"
-          class="bg-zinc-800 text-zinc-100 sm:order-0 -order-1 sm:w-fit w-16"
-          :value="playbackSpeed"
-          @change="changePlaybackSpeed"
-        >
-          <option value="0.25">
-            x0.25
-          </option>
-          <option value="0.5">
-            x0.5
-          </option>
-          <option value="0.75">
-            x0.75
-          </option>
-          <option value="1">
-            x1
-          </option>
-          <option value="1.25">
-            x1.25
-          </option>
-          <option value="1.5">
-            x1.5
-          </option>
-        </select>
-
-        <div
-          class="flex sm:order-0 -order-2 sm:grow min-w-full sm:min-w-0 items-center gap-2"
-        >
-          <span
-            id="currentTime"
-            class="min-w-10 text-end"
-          >{{
-            currentTimeText
-          }}</span>
-          <div
-            id="waveform"
-            class="min-w-0 w-full"
-          />
-          <span
-            id="duration"
-            class="min-w-10"
-          >{{
-            durationText
-          }}</span>
-        </div>
-
-        <button
-          id="removeSongBtn"
-          class="hover:bg-zinc-700 rounded-full min-w-8 h-8 sm:ms-0 ms-8"
-          @click="removeSong"
-        >
-          <img
-            :src="closeIcon"
-            alt="remove song"
-            class="mx-auto"
-          >
-        </button>
-      </div>
-      <div
-        v-show="!hasAudio"
-        id="fileChooser"
-        class="w-full h-full content-center"
-      >
-        <input
-          id="file"
-          ref="fileInputRef"
-          type="file"
-          name="fileInput"
-          class="hidden"
-          @change="sourceFile"
-        >
-        <label
-          for="file"
-          class="block bg-orange-400 content-center text-center font-medium mx-auto w-3/4 max-w-80 h-5/6 text-black rounded-3xl cursor-pointer"
-          @click.prevent="triggerFileInput"
-        >
-          Choose File
-        </label>
-      </div>
-    </div>
+    <!-- Render the isolated AudioPlayer component -->
+    <AudioPlayer
+      @audio-seek="handleAudioSeek"
+      @audio-loaded="handleAudioLoaded"
+      @audio-removed="handleAudioRemoved"
+    />
 
     <!-- Inputs and Controls Container -->
     <div
