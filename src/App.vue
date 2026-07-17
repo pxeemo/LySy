@@ -335,7 +335,7 @@ const plainLyricParser = () => {
       const item: LyricItem = {
         text: lineData.text,
         isBg: lineData.isBg || false,
-        time: lineData.time,
+        beginTime: lineData.time,
         vocalist: lineData.vocalist || 1,
         words,
         mode: 'default',
@@ -388,10 +388,10 @@ const plainLyricParser = () => {
       if (!el) return
       item.el = el
 
-      if (item.time !== undefined) {
+      if (item.beginTime !== undefined) {
         previewAnim.addElement(
           el,
-          Number(item.time),
+          item.beginTime,
           wavesurfer ? wavesurfer.getCurrentTime() : 0,
         )
       }
@@ -456,10 +456,10 @@ const scrollToItem = (el: HTMLElement) => {
 }
 
 const handleItemClick = (item: LyricItem) => {
-  if (item.time === undefined || !wavesurfer) return
-  wavesurfer.setTime(item.time)
+  if (item.beginTime === undefined || !wavesurfer) return
+  wavesurfer.setTime(item.beginTime)
   previewAnim.refresh(
-    item.time,
+    item.beginTime,
     1 / wavesurfer.getPlaybackRate(),
     isWordByWord.value,
   )
@@ -571,23 +571,23 @@ const next = () => {
     word.actived = true
 
     if (currentWordIndex.value === 0) {
-      activeItem.time = currentTime
+      activeItem.beginTime = currentTime
       const el = activeItem.el
       if (el) {
-        previewAnim.addElement(el, Number(activeItem.time), currentTime)
+        previewAnim.addElement(el, activeItem.beginTime, currentTime)
       }
     }
   } else if (currentItemIndex.value < itemsList.value.length - 1) {
     currentItemIndex.value++
     const item = itemsList.value[currentItemIndex.value]
     if (!item) return
-    item.time = currentTime
+    item.beginTime = currentTime
     updateSelections()
     nextTick(() => {
       const el = itemRefs.value[currentItemIndex.value]
-      if (el) {
+      if (el && item.beginTime !== undefined) {
         scrollToItem(el)
-        previewAnim.addElement(el, Number(item.time), currentTime)
+        previewAnim.addElement(el, item.beginTime, currentTime)
       }
     })
   }
@@ -597,7 +597,7 @@ const clearLine = (item: LyricItem) => {
   if (item.el) {
     previewAnim.removeElement(item.el)
   }
-  delete item.time
+  item.beginTime = undefined
   if (isWordByWord.value) {
     item.words.forEach((word) => {
       if (word.beginTime === undefined) return
@@ -625,16 +625,16 @@ const prevItem = () => {
       if (prevItemObj) {
         const prevEl = itemRefs.value[currentItemIndex.value - 1]
         if (prevEl) scrollToItem(prevEl)
-        if (prevItemObj.time !== undefined) {
-          wavesurfer.setTime(Math.max(0, prevItemObj.time - 1.5))
+        if (prevItemObj.beginTime !== undefined) {
+          wavesurfer.setTime(Math.max(0, prevItemObj.beginTime - 1.5))
         }
         clearLine(prevItemObj)
         currentItemIndex.value--
         updateSelections()
       }
     } else if (currentWordIndex.value !== -1) {
-      if (item.time !== undefined) {
-        wavesurfer.setTime(Math.max(0, item.time - 1.5))
+      if (item.beginTime !== undefined) {
+        wavesurfer.setTime(Math.max(0, item.beginTime - 1.5))
       }
       if (item) clearLine(item)
       currentWordIndex.value = -1
@@ -646,8 +646,8 @@ const prevItem = () => {
               ? itemRefs.value[0]
               : itemRefs.value[currentItemIndex.value]
     if (targetEl) scrollToItem(targetEl)
-    if (item.time !== undefined) {
-      wavesurfer.setTime(Math.max(0, item.time - 1.5))
+    if (item.beginTime !== undefined) {
+      wavesurfer.setTime(Math.max(0, item.beginTime - 1.5))
     }
     updateSelections()
     clearLine(item)
@@ -684,7 +684,7 @@ const openEditModal = (item: LyricItem, index: number) => {
   markAsBg.value = item.isBg || false
 
   editItemTimes.value = []
-  editItemLineTime.value = formatTime(item.time || 0)
+  editItemLineTime.value = formatTime(item.beginTime || 0)
 
   if (isWordByWord.value) {
     let text = ''
@@ -784,7 +784,7 @@ const handleSaveItemEdit = () => {
         }
       })
       if (item.words[0] && item.words[0].beginTime !== undefined) {
-        item.time = item.words[0].beginTime
+        item.beginTime = item.words[0].beginTime
       }
     } else {
       // Reparse the words
@@ -798,7 +798,7 @@ const handleSaveItemEdit = () => {
     }
     item.text = editItemText.value
     const parsedTime = deformatTime(editItemLineTime.value)
-    item.time = parsedTime
+    item.beginTime = parsedTime
     if (item.el) {
       previewAnim.addElement(
         item.el,
@@ -1100,9 +1100,6 @@ const handleDownload = () => {
               if (el) itemRefs[index] = el as HTMLElement
             }
           "
-          :data-type="item.isBg ? 'bg' : 'normal'"
-          :data-vocalist="isDuet ? item.vocalist : undefined"
-          :data-time="item.time"
           class="flex px-5 gap-2 items-center rounded first:rounded-t-2xl last:rounded-b-2xl border duration-300 ease-out transition-all scroll-mt-[20svh]"
           :class="[
             item.isBg ? 'py-2' : 'py-4',
@@ -1278,7 +1275,7 @@ const handleDownload = () => {
             v-if="
               !isWordByWord &&
                 editItemIndex !== null &&
-                itemsList[editItemIndex]?.time !== undefined
+                itemsList[editItemIndex]?.beginTime !== undefined
             "
           >
             <input

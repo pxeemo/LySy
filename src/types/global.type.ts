@@ -9,7 +9,8 @@ export interface WordItem {
 export interface LyricItem {
     text: string
     isBg: boolean
-    time?: number
+    beginTime?: number
+    endTime?: number
     vocalist?: number
     words: WordItem[]
     mode: 'active' | 'selected' | 'default'

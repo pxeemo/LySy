@@ -98,10 +98,10 @@ export function parseLrc(text: string) {
 export function generateLrc(itemsList: LyricItem[], isWordByWord: boolean, isDuet: boolean) {
   let text = '[by:Generated using LySy]\n'
   itemsList.forEach((item) => {
-    if (!item.time) return
+    if (!item.beginTime) return
 
     if (!item.isBg) {
-      text += `[${formatTime(item.time)}]`
+      text += `[${formatTime(item.beginTime)}]`
       if (isDuet) text += (item.vocalist != 1) ? 'v2:' : 'v1:'
     } else {
       // removes extra line break from the previous loop
@@ -110,7 +110,7 @@ export function generateLrc(itemsList: LyricItem[], isWordByWord: boolean, isDue
 
     if (isWordByWord) {
       const words = item.words
-      text += `<${formatTime(item.time)}>`
+      text += `<${formatTime(item.beginTime)}>`
       words.forEach((word, index) => {
         if (!word.beginTime || !word.endTime) return
         const beginTimeStr = `<${formatTime(word.beginTime)}>`
