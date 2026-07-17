@@ -39,11 +39,13 @@ export function useWaveSurfer() {
       ws.zoom(zoomLevel.value)
     } catch (e) {
       // safe fallback if no audio loaded yet
+      console.log(e)
     }
     try {
       ws.setPlaybackRate(parseFloat(playbackSpeed.value))
     } catch (e) {
       // safe fallback if no audio loaded yet
+      console.log(e)
     }
 
     // Set up event listeners
