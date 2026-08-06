@@ -1,4 +1,4 @@
-import { ref, watch, nextTick, type Ref } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { AnimationManager } from '../utils/previewAnimation'
 import { generateLrc, parseLrc, stripLrc } from '../utils/fileformat/lrc'
 import { useWaveSurfer } from './useWaveSurfer'

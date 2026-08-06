@@ -1,4 +1,4 @@
-import { ref, nextTick, type Ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { useLyrics } from './useLyrics'
 import { useWaveSurfer } from './useWaveSurfer'
 import { LyricItem } from '../types/global.type'
