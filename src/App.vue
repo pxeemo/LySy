@@ -55,41 +55,36 @@ onUnmounted(() => {
 })
 
 const handleGlobalKeydown = (e: KeyboardEvent) => {
-  if (e.code !== 'Space') return
-  const activeNode = (document.activeElement as HTMLElement)?.nodeName || ''
-  if (['INPUT', 'TEXTAREA'].includes(activeNode)) return
-  e.preventDefault()
-  if (e.shiftKey) {
-    prevItem()
-  } else if (!hasAudio.value) {
-    const chooseBtn = document.querySelector('#fileChooser label') as HTMLElement
-    chooseBtn?.click()
-  } else if (itemsList.value.length === 0) {
-    plainLyricParser()
-  } else {
-    next()
+  const activeNode = document.activeElement?.tagName?.toLowerCase() || ''
+  if (['input', 'textarea'].includes(activeNode)) return
+  if (e.code === 'Space') {
+    e.preventDefault()
+    if (e.shiftKey) {
+      prevItem()
+    } else if (!hasAudio.value) {
+      const chooseBtn = document.querySelector('#fileChooser label') as HTMLElement
+      chooseBtn?.click()
+    } else if (itemsList.value.length === 0) {
+      plainLyricParser()
+    } else {
+      next()
+    }
   }
 }
 
-const handleAudioLoaded = (file: File) => {
-  // Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
-}
-
-const handleAudioRemoved = () => {
-  // Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
-}
+// Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
+const handleAudioLoaded = () => {}
+const handleAudioRemoved = () => {}
 </script>
 
 <template>
   <div>
-    <!-- Render the isolated AudioPlayer component -->
     <AudioPlayer
       @audio-seek="handleAudioSeek"
       @audio-loaded="handleAudioLoaded"
       @audio-removed="handleAudioRemoved"
     />
 
-    <!-- Render the isolated LyricInputArea component -->
     <LyricInputArea />
 
     <!-- Lyrics list container -->
