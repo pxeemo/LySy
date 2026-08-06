@@ -6,28 +6,15 @@ import LyricSyncList from './components/LyricSyncList.vue'
 import FloatingControls from './components/FloatingControls.vue'
 import LyricEditModal from './components/LyricEditModal.vue'
 
-const {
-  handleAudioSeek,
-} = useLyrics()
-
-const handleAudioLoaded = () => {}
-const handleAudioRemoved = () => {}
+const { handleAudioSeek } = useLyrics()
 </script>
 
 <template>
   <div>
-    <AudioPlayer
-      @audio-seek="handleAudioSeek"
-      @audio-loaded="handleAudioLoaded"
-      @audio-removed="handleAudioRemoved"
-    />
-
+    <AudioPlayer @audio-seek="handleAudioSeek" />
     <LyricInputArea />
-
     <LyricSyncList />
-
     <FloatingControls />
-
     <LyricEditModal />
   </div>
 </template>
