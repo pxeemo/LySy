@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
 import { useWaveSurfer } from './composables/useWaveSurfer'
 import { useLyrics } from './composables/useLyrics'
 import { useLyricEditor } from './composables/useLyricEditor'
 import AudioPlayer from './components/AudioPlayer.vue'
 import LyricInputArea from './components/LyricInputArea.vue'
 import LyricSyncList from './components/LyricSyncList.vue'
+import FloatingControls from './components/FloatingControls.vue'
 
 // Composables
 const {
@@ -14,13 +14,8 @@ const {
 
 const {
   isWordByWord,
-  isDuet,
   itemsList,
   currentItemIndex,
-  wordEnd,
-  next,
-  prevItem,
-  handleSwitchVocalistBtn,
   plainLyricParser,
   handleAudioSeek,
 } = useLyrics()
@@ -36,33 +31,6 @@ const {
   handleRemoveItem,
   handleSaveItemEdit,
 } = useLyricEditor()
-
-// Setup global spacebar hotkey
-onMounted(() => {
-  window.addEventListener('keydown', handleGlobalKeydown)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleGlobalKeydown)
-})
-
-const handleGlobalKeydown = (e: KeyboardEvent) => {
-  const activeNode = document.activeElement?.tagName?.toLowerCase() || ''
-  if (['input', 'textarea'].includes(activeNode)) return
-  if (e.code === 'Space') {
-    e.preventDefault()
-    if (e.shiftKey) {
-      prevItem()
-    } else if (!hasAudio.value) {
-      const chooseBtn = document.querySelector('#fileChooser label') as HTMLElement
-      chooseBtn?.click()
-    } else if (itemsList.value.length === 0) {
-      plainLyricParser()
-    } else {
-      next()
-    }
-  }
-}
 
 // Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
 const handleAudioLoaded = () => {}
@@ -81,43 +49,7 @@ const handleAudioRemoved = () => {}
 
     <LyricSyncList />
 
-    <!-- Floating action buttons -->
-    <button
-      id="switchVocalistBtn"
-      class="fixed left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all cursor-pointer"
-      :class="[
-        isDuet
-          ? isWordByWord
-            ? 'sm:bottom-37 bottom-51'
-            : 'sm:bottom-20 bottom-34'
-          : 'bottom-0',
-      ]"
-      @click="handleSwitchVocalistBtn"
-    >
-      Switch Vocalist
-    </button>
-    <button
-      id="wordEndBtn"
-      class="fixed left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all cursor-pointer"
-      :class="[isWordByWord ? 'sm:bottom-20 bottom-34' : 'bottom-0']"
-      @click="wordEnd"
-    >
-      Word End
-    </button>
-    <button
-      id="prevItemBtn"
-      class="fixed right-4 h-14 w-14 bg-zinc-800 border-orange-400 border shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150 sm:bottom-37 bottom-51 cursor-pointer"
-      @click="prevItem"
-    >
-      Back
-    </button>
-    <button
-      id="nextItemBtn"
-      class="fixed right-4 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all sm:bottom-20 bottom-34 cursor-pointer"
-      @click="next"
-    >
-      Next
-    </button>
+    <FloatingControls />
 
     <!-- Edit Item Modal -->
     <dialog
