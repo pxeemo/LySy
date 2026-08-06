@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useWaveSurfer } from './composables/useWaveSurfer'
 import { useLyrics } from './composables/useLyrics'
 import { useLyricEditor } from './composables/useLyricEditor'
 import AudioPlayer from './components/AudioPlayer.vue'
+import LyricInputArea from './components/LyricInputArea.vue'
 
 // Assets
 import editIconSvg from './assets/edit.svg'
@@ -14,14 +15,10 @@ const {
 } = useWaveSurfer()
 
 const {
-  lyricInput,
   isWordByWord,
-  isCharByChar,
   isDuet,
-  offsetInput,
   itemsList,
   currentItemIndex,
-  currentWordIndex,
   showSyncer,
   itemRefs,
   rtlCharsPattern,
@@ -47,9 +44,6 @@ const {
   handleRemoveItem,
   handleSaveItemEdit,
 } = useLyricEditor()
-
-// File handling
-const lrcFileInputRef = ref<HTMLInputElement | null>(null)
 
 // Setup global spacebar hotkey
 onMounted(() => {
@@ -77,24 +71,6 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const triggerLrcFileInput = () => {
-  lrcFileInputRef.value?.click()
-}
-
-const handleLrcUpload = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        lyricInput.value = event.target.result as string
-      }
-    }
-    reader.readAsText(file)
-  }
-}
-
 const handleAudioLoaded = (file: File) => {
   // Handled inside AudioPlayer via useWaveSurfer, but we can hook into it if needed
 }
@@ -113,115 +89,8 @@ const handleAudioRemoved = () => {
       @audio-removed="handleAudioRemoved"
     />
 
-    <!-- Inputs and Controls Container -->
-    <div
-      class="container container-md p-4 h-[calc(100svh-3rem)] text-center"
-    >
-      <textarea
-        id="lyricInput"
-        v-model="lyricInput"
-        dir="auto"
-        class="w-full max-w-3xl h-[calc(100%-13rem)] py-3 px-4 outline-none bg-zinc-950 rounded-3xl focus:shadow-orange-400 focus:shadow-[0_0_2px_0_#fff] border-zinc-700 transition-all ease-in-out duration-300 focus:border-orange-400 border-2 resize-none"
-        rows="20"
-        placeholder="Enter your lyric text here"
-        required
-      />
-
-      <div class="max-w-lg px-6 my-2 mx-auto">
-        <label
-          class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-t-2xl cursor-pointer items-center justify-between"
-          for="isWordByWord"
-        >
-          <p class="ps-2 text-lg text-start">Sync word-by-word</p>
-          <input
-            id="isWordByWord"
-            v-model="isWordByWord"
-            class="hidden peer"
-            type="checkbox"
-            name="isWordByWord"
-          >
-          <label
-            class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-            for="isWordByWord"
-          />
-        </label>
-        <label
-          class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
-          for="isCharByChar"
-        >
-          <p class="ps-2 text-lg text-start">
-            Character-based syncing
-          </p>
-          <input
-            id="isCharByChar"
-            v-model="isCharByChar"
-            class="hidden peer"
-            type="checkbox"
-            name="isCharByChar"
-          >
-          <label
-            class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-            for="isCharByChar"
-          />
-        </label>
-        <label
-          class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-b-2xl cursor-pointer items-center justify-between"
-          for="isDuet"
-        >
-          <p class="ps-2 text-lg text-start">Enable duet</p>
-          <input
-            id="isDuet"
-            v-model="isDuet"
-            class="hidden peer"
-            type="checkbox"
-            name="isDuet"
-          >
-          <label
-            class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-            for="isDuet"
-          />
-        </label>
-      </div>
-
-      <div class="flex gap-2 justify-center items-center">
-        <div class="flex gap-2 items-center">
-          <label
-            for="offsetInput"
-            class="text-zinc-300 text-sm"
-          >Offset (ms):</label>
-          <input
-            id="offsetInput"
-            v-model.number="offsetInput"
-            type="number"
-            class="w-24 h-8 bg-zinc-800 text-zinc-100 border-2 border-zinc-700 rounded-lg px-2 text-center outline-none focus:border-orange-400 transition-all"
-            step="10"
-          >
-        </div>
-        <input
-          id="lrcFile"
-          ref="lrcFileInputRef"
-          type="file"
-          name="lrcFileInput"
-          class="hidden"
-          accept=".lrc"
-          @change="handleLrcUpload"
-        >
-        <label
-          for="lrcFile"
-          class="h-8 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 font-medium rounded-full px-5 leading-8 cursor-pointer transition-colors"
-          @click.prevent="triggerLrcFileInput"
-        >
-          Upload Lyrics
-        </label>
-        <button
-          id="plainInputParser"
-          class="h-8 bg-orange-400 text-black font-medium rounded-full px-5"
-          @click="plainLyricParser"
-        >
-          Load
-        </button>
-      </div>
-    </div>
+    <!-- Render the isolated LyricInputArea component -->
+    <LyricInputArea />
 
     <!-- Lyrics list container -->
     <div
@@ -295,7 +164,7 @@ const handleAudioRemoved = () => {
 
       <button
         id="dlFile"
-        class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2"
+        class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2 cursor-pointer"
         @click="handleDownload"
       >
         Save
@@ -305,7 +174,7 @@ const handleAudioRemoved = () => {
     <!-- Floating action buttons -->
     <button
       id="switchVocalistBtn"
-      class="fixed left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all"
+      class="fixed left-4 h-14 w-14 text-xs/3 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all cursor-pointer"
       :class="[
         isDuet
           ? isWordByWord
@@ -319,7 +188,7 @@ const handleAudioRemoved = () => {
     </button>
     <button
       id="wordEndBtn"
-      class="fixed left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all"
+      class="fixed left-4 h-14 w-14 text-sm/4 bg-zinc-800 border-orange-400 border shadow-xl/30 text-zinc-100 rounded-xl transition-all cursor-pointer"
       :class="[isWordByWord ? 'sm:bottom-20 bottom-34' : 'bottom-0']"
       @click="wordEnd"
     >
@@ -327,14 +196,14 @@ const handleAudioRemoved = () => {
     </button>
     <button
       id="prevItemBtn"
-      class="fixed right-4 h-14 w-14 bg-zinc-800 border-orange-400 border shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150 sm:bottom-37 bottom-51"
+      class="fixed right-4 h-14 w-14 bg-zinc-800 border-orange-400 border shadow-2xl/30 text-zinc-100 rounded-xl transition-all delay-150 sm:bottom-37 bottom-51 cursor-pointer"
       @click="prevItem"
     >
       Back
     </button>
     <button
       id="nextItemBtn"
-      class="fixed right-4 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all sm:bottom-20 bottom-34"
+      class="fixed right-4 h-14 w-14 font-semibold bg-orange-400 shadow-2xl/30 text-black rounded-xl transition-all sm:bottom-20 bottom-34 cursor-pointer"
       @click="next"
     >
       Next
@@ -442,7 +311,7 @@ const handleAudioRemoved = () => {
           </div>
           <button
             id="addItemAboveBtn"
-            class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
+            class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200 cursor-pointer"
             :disabled="
               editItemIndex === null ||
                 editItemIndex <= currentItemIndex
@@ -453,7 +322,7 @@ const handleAudioRemoved = () => {
           </button>
           <button
             id="addItemBelowBtn"
-            class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200"
+            class="px-2 py-0.5 text-orange-400 not-disabled:hover:bg-orange-300/20 rounded-full disabled:text-gray-400 transition-colors duration-200 cursor-pointer"
             :disabled="
               editItemIndex === null ||
                 editItemIndex < currentItemIndex
@@ -464,7 +333,7 @@ const handleAudioRemoved = () => {
           </button>
           <button
             id="editItemRemove"
-            class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200"
+            class="px-2 py-0.5 text-red-500 not-disabled:hover:bg-red-400/20 rounded-full transition-all duration-200 cursor-pointer"
             @click="handleRemoveItem"
           >
             Remove
@@ -473,14 +342,14 @@ const handleAudioRemoved = () => {
         <div class="flex justify-end">
           <button
             id="editItemCancel"
-            class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200"
+            class="m-1 px-3 py-1 text-orange-400 hover:bg-orange-300/20 rounded-full transition-colors duration-200 cursor-pointer"
             @click="editItemModal?.close()"
           >
             Cancel
           </button>
           <button
             id="editItemDone"
-            class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200"
+            class="m-1 px-3 py-1 font-medium text-black bg-orange-400 rounded-full transition-colors duration-200 cursor-pointer"
             @click="handleSaveItemEdit"
           >
             Save
