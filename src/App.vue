@@ -10,11 +10,13 @@ const { handleAudioSeek } = useLyrics()
 </script>
 
 <template>
-  <div>
+  <div class="h-dvh grid grid-rows-[minmax(0,1fr)_auto]">
+    <main class="min-h-0 overflow-y-auto pb-24">
+      <LyricInputArea />
+      <LyricSyncList />
+      <FloatingControls />
+      <LyricEditModal />
+    </main>
     <AudioPlayer @audio-seek="handleAudioSeek" />
-    <LyricInputArea />
-    <LyricSyncList />
-    <FloatingControls />
-    <LyricEditModal />
   </div>
 </template>

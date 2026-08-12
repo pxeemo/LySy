@@ -2,7 +2,7 @@ import { ref, watch, nextTick } from 'vue'
 import { AnimationManager } from '../utils/previewAnimation'
 import { generateLrc, parseLrc, stripLrc } from '../utils/fileformat/lrc'
 import { useWaveSurfer } from './useWaveSurfer'
-import { LyricItem, WordItem } from '../types/global.type'
+import type { LyricItem, WordItem } from '../types/global.type'
 
 // Singletons/module-level states
 const lyricInput = ref('')
@@ -259,8 +259,8 @@ const plainLyricParser = () => {
 
     // Scroll
     const scrollTarget =
-      currentItemIndex.value >= 0 &&
-      currentItemIndex.value < itemsList.value.length
+      currentItemIndex.value >= 0
+      && currentItemIndex.value < itemsList.value.length
         ? itemRefs.value[currentItemIndex.value]
         : itemRefs.value[0]
     if (scrollTarget) {
@@ -366,22 +366,19 @@ const next = () => {
     currentWordIndex.value++
 
     // end of line
-    if (currentWordIndex.value >= currentItem.words.length) {
+    if (
+      currentWordIndex.value >= currentItem.words.length
+      && currentItemIndex.value <= itemsList.value.length - 1
+    ) {
+      currentItemIndex.value++
       updateSelections()
-      if (currentItemIndex.value <= itemsList.value.length - 1) {
-        currentItemIndex.value++
-        updateSelections()
-        if (currentItemIndex.value !== itemsList.value.length) {
-          const nextEl = itemRefs.value[currentItemIndex.value]
-          if (nextEl) {
-            scrollToItem(nextEl)
-          }
-          currentWordIndex.value = 0
-        } else {
-          currentWordIndex.value = -1
-          return
-        }
+      if (currentItemIndex.value === itemsList.value.length) {
+        currentWordIndex.value = -1
+        return
       }
+      const nextEl = itemRefs.value[currentItemIndex.value]
+      if (nextEl) scrollToItem(nextEl)
+      currentWordIndex.value = 0
     }
 
     const activeItem = itemsList.value[currentItemIndex.value]
@@ -415,22 +412,20 @@ const next = () => {
 }
 
 const clearLine = (item: LyricItem) => {
-  if (item.el) {
-    previewAnim.removeElement(item.el)
-  }
+  if (item.el) previewAnim.removeElement(item.el)
   item.beginTime = undefined
+  item.endTime = undefined
   if (isWordByWord.value) {
     item.words.forEach((word) => {
-      if (word.beginTime === undefined) return
-      delete word.beginTime
-      delete word.endTime
+      word.beginTime = undefined
+      word.endTime = undefined
       word.actived = false
     })
     if (item.el) {
-      const spanEls = item.el.querySelectorAll('span.word')
+      const spanEls = item.el.querySelectorAll('span.word') as NodeListOf<HTMLElement>
       spanEls.forEach((spanEl) => {
-        previewAnim.removeElement(spanEl as HTMLElement)
-        ;(spanEl as HTMLElement).style.animationName = ''
+        previewAnim.removeElement(spanEl)
+        spanEl.style.animationName = ''
       })
     }
   }
@@ -474,11 +469,7 @@ const prevItem = () => {
     clearLine(item)
   }
 
-  previewAnim.refresh(
-    getCurrentTime(),
-    1 / getPlaybackRate(),
-    isWordByWord.value,
-  )
+  previewAnim.refresh(getCurrentTime(), 1 / getPlaybackRate(), isWordByWord.value)
 }
 
 const switchVocalist = (item: LyricItem) => {

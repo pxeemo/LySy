@@ -104,9 +104,8 @@ const handlePlaybackSpeedChange = (e: Event) => {
 </script>
 
 <template>
-  <!-- Bottom Audio Player Container -->
   <div
-    class="fixed z-20 w-screen sm:h-16 h-30 bg-zinc-800 bottom-0 px-4 py-2 shadow-[0_0_6px_#111] transition-all"
+    class="w-screen z-10 sm:h-16 h-30 bg-zinc-800 px-4 py-2 shadow-[0_0_25px_black] transition-all"
   >
     <div
       v-show="hasAudio"
@@ -234,7 +233,7 @@ const handlePlaybackSpeedChange = (e: Event) => {
         class="block bg-orange-400 content-center text-center font-medium mx-auto w-3/4 max-w-80 h-5/6 text-black rounded-3xl cursor-pointer"
         @click.prevent="triggerFileInput"
       >
-        Choose File
+        Choose Audio File
       </label>
     </div>
   </div>
