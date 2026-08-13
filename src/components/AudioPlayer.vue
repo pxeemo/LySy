@@ -229,6 +229,7 @@ const handlePlaybackSpeedChange = (e: Event) => {
         @change="sourceFile"
       >
       <label
+        v-wave
         for="file"
         class="block bg-orange-400 content-center text-center font-medium mx-auto w-3/4 max-w-80 h-5/6 text-black rounded-3xl cursor-pointer"
         @click.prevent="triggerFileInput"

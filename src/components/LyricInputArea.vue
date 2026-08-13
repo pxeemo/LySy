@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useLyrics } from '../composables/useLyrics'
+import MdSwitchItem from './ui/MdSwitchItem.vue'
 
 const {
   lyricInput,
@@ -48,59 +49,15 @@ const handleLrcUpload = (e: Event) => {
     />
 
     <div class="max-w-lg px-6 my-2 mx-auto">
-      <label
-        class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-t-2xl cursor-pointer items-center justify-between"
-        for="isWordByWord"
-      >
-        <p class="ps-2 text-lg text-start">Sync word-by-word</p>
-        <input
-          id="isWordByWord"
-          v-model="isWordByWord"
-          class="hidden peer"
-          type="checkbox"
-          name="isWordByWord"
-        >
-        <label
-          class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-          for="isWordByWord"
-        />
-      </label>
-      <label
-        class="flex p-2 my-0.5 bg-zinc-800 rounded cursor-pointer items-center justify-between"
-        for="isCharByChar"
-      >
-        <p class="ps-2 text-lg text-start">
-          Character-based syncing
-        </p>
-        <input
-          id="isCharByChar"
-          v-model="isCharByChar"
-          class="hidden peer"
-          type="checkbox"
-          name="isCharByChar"
-        >
-        <label
-          class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-          for="isCharByChar"
-        />
-      </label>
-      <label
-        class="flex p-2 my-0.5 bg-zinc-800 rounded rounded-b-2xl cursor-pointer items-center justify-between"
-        for="isDuet"
-      >
-        <p class="ps-2 text-lg text-start">Enable duet</p>
-        <input
-          id="isDuet"
-          v-model="isDuet"
-          class="hidden peer"
-          type="checkbox"
-          name="isDuet"
-        >
-        <label
-          class="relative inline-block min-w-12 h-8 cursor-pointer border-zinc-500 border-2 bg-zinc-800 peer-checked:bg-orange-400 rounded-full duration-500 transition before:duration-50 before:ease-out before:transition-all before:absolute before:content-[''] before:bg-zinc-400 before:aspect-square before:left-1.5 before:top-1.5 before:bottom-1.5 peer-checked:before:left-4.5 peer-checked:before:bottom-0.5 peer-checked:before:top-0.5 peer-checked:border-orange-400 peer-checked:before:bg-zinc-800 before:rounded-full"
-          for="isDuet"
-        />
-      </label>
+      <MdSwitchItem v-model="isWordByWord">
+        Sync word-by-word
+      </MdSwitchItem>
+      <MdSwitchItem v-model="isCharByChar">
+        Character-based syncing
+      </MdSwitchItem>
+      <MdSwitchItem v-model="isDuet">
+        Enable duet
+      </MdSwitchItem>
     </div>
 
     <div class="flex flex-wrap gap-2 justify-center items-center">
@@ -128,6 +85,7 @@ const handleLrcUpload = (e: Event) => {
           @change="handleLrcUpload"
         >
         <label
+          v-wave
           for="lrcFile"
           class="h-8 bg-zinc-800 hover:bg-zinc-700/70 content-center rounded-full px-5 cursor-pointer transition-colors"
           @click.prevent="triggerLrcFileInput"
@@ -136,6 +94,7 @@ const handleLrcUpload = (e: Event) => {
         </label>
         <button
           id="plainInputParser"
+          v-wave
           class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 cursor-pointer"
           @click="plainLyricParser"
         >

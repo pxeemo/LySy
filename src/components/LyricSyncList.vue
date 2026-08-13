@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import wave from 'v-wave'
+
 import { useLyrics } from '../composables/useLyrics'
 import { useLyricEditor } from '../composables/useLyricEditor'
 
-// Assets
 import editIconSvg from '../assets/edit.svg'
 
 const {
@@ -19,6 +20,17 @@ const {
 const {
   openEditModal,
 } = useLyricEditor()
+
+const triggers = new Map<string, ReturnType<typeof wave.createTrigger>>()
+
+function getTrigger(id: number) {
+  let trigger = triggers.get(String(id))
+  if (!trigger) {
+    trigger = wave.createTrigger()
+    triggers.set(String(id), trigger)
+  }
+  return trigger
+}
 </script>
 
 <template>
@@ -40,9 +52,9 @@ const {
             if (el) itemRefs[index] = el as HTMLElement
           }
         "
+        v-wave="{ trigger: getTrigger(index) }"
         class="flex px-5 gap-2 items-center rounded first:rounded-t-2xl last:rounded-b-2xl border duration-300 ease-out transition-all scroll-mt-[20svh]"
         :class="[
-          item.isBg ? 'py-2' : 'py-4',
           {
             'text-zinc-100 cursor-pointer border-zinc-900 bg-zinc-800': item.mode === 'active',
             'border-orange-400 text-zinc-400 rounded-b-2xl': item.mode === 'selected',
@@ -50,16 +62,20 @@ const {
           },
         ]"
         @click="handleItemClick(item)"
+        @pointerdown.self="e => { if (item.mode == 'active') getTrigger(index).press(e) }"
+        @pointerup.self="() => { if (item.mode == 'active') getTrigger(index).release() }"
       >
         <p
           class="grow text-start transition-all duration-300"
           :class="[
-            item.isBg ? '' : 'text-2xl',
+            item.isBg ? 'my-2' : 'my-4 text-2xl',
             isDuet && item.vocalist === 2
               ? 'text-end'
               : 'text-start',
           ]"
           :dir="rtlCharsPattern.test(item.text) ? 'rtl' : 'auto'"
+          @pointerdown="e => { if (item.mode == 'active') getTrigger(index).press(e) }"
+          @pointerup="() => { if (item.mode == 'active') getTrigger(index).release() }"
         >
           <!-- Render words if word-by-word is enabled -->
           <template v-if="isWordByWord && item.words.length > 0">
@@ -83,17 +99,22 @@ const {
             {{ item.text }}
           </template>
         </p>
-        <img
-          class="mx-2 cursor-pointer"
-          :src="editIconSvg"
-          :width="20"
+        <div
+          class="p-2 rounded-full transition-colors hover:bg-zinc-700"
           @click.stop="openEditModal(item, index)"
         >
+          <img
+            class="cursor-pointer"
+            :src="editIconSvg"
+            :width="20"
+          >
+        </div>
       </li>
     </ul>
 
     <button
       id="dlFile"
+      v-wave
       class="h-8 bg-orange-400 text-black font-medium rounded-full px-5 my-2 cursor-pointer"
       @click="handleDownload"
     >

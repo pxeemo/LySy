@@ -24,6 +24,7 @@
     "dependencies": {
         "@tailwindcss/vite": "^4.3.3",
         "tailwindcss": "^4.3.3",
+        "v-wave": "^3.1.1",
         "wavesurfer.js": "^7.12.11"
     }
 }
