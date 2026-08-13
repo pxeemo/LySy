@@ -62,8 +62,9 @@ function getTrigger(id: number) {
           },
         ]"
         @click="handleItemClick(item)"
-        @pointerdown.self="e => { if (item.mode == 'active') getTrigger(index).press(e) }"
-        @pointerup.self="() => { if (item.mode == 'active') getTrigger(index).release() }"
+        @pointerdown.self="e => { if (item.mode === 'active') getTrigger(index).press(e) }"
+        @pointerup.self="() => { if (item.mode === 'active') getTrigger(index).release() }"
+        @pointercancel.self="() => { if (item.mode === 'active') getTrigger(index).release() }"
       >
         <p
           class="grow text-start transition-all duration-300"
@@ -74,8 +75,9 @@ function getTrigger(id: number) {
               : 'text-start',
           ]"
           :dir="rtlCharsPattern.test(item.text) ? 'rtl' : 'auto'"
-          @pointerdown="e => { if (item.mode == 'active') getTrigger(index).press(e) }"
-          @pointerup="() => { if (item.mode == 'active') getTrigger(index).release() }"
+          @pointerdown="e => { if (item.mode === 'active') getTrigger(index).press(e) }"
+          @pointerup="() => { if (item.mode === 'active') getTrigger(index).release() }"
+          @pointercancel="() => { if (item.mode === 'active') getTrigger(index).release() }"
         >
           <!-- Render words if word-by-word is enabled -->
           <template v-if="isWordByWord && item.words.length > 0">
